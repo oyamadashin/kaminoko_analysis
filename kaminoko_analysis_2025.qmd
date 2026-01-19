@@ -1,0 +1,65 @@
+---
+title: "kaminoko_analysis_2025"
+format: pdf
+execute:
+  echo: false
+  freeze: auto
+  warning: false
+---
+
+# 準備
+
+## パッケージ読み込み
+
+```{r}
+#| include: false
+
+library(tidyverse)
+```
+
+## データインポート
+
+```{r}
+#| include: false
+
+data <- read_csv("kaminoko2025_all.csv")
+```
+
+## 再コーディング
+
+```{r}
+# 必要に応じて追加
+
+```
+
+# 単純集計
+
+## 実施日
+
+```{r}
+data |> 
+  ggplot(aes(y = date, fill = date)) +
+  geom_bar()
+```
+
+## 性別（v1）
+
+```{r}
+data |> 
+  ggplot(aes(y = v1_sex, fill = v1_sex)) +
+  geom_bar()
+```
+
+男性の方がやや多め。
+
+```{r}
+data |> 
+  filter(!is.na(v1_sex)) |> 
+  ggplot(aes(y = v1_sex, fill = v1_sex)) +
+  geom_bar() +
+  facet_wrap(~date)
+```
+
+6月調査の方は男女比率がほぼ同じ。
+
+## 世代（v2）

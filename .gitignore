@@ -1,0 +1,12 @@
+# RStudio
+.Rproj.user/
+
+# R session files
+.Rhistory
+.RData
+.Ruserdata
+
+
+
+# Output
+results/tmp/
