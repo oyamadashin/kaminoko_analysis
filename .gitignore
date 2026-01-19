@@ -6,7 +6,12 @@
 .RData
 .Ruserdata
 
-
-
 # Output
 results/tmp/
+
+# Quarto / LaTeX output
+*.aux
+*.log
+*.tex
+*_files/
+*.html

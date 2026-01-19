@@ -1,6 +1,6 @@
 ---
 title: "kaminoko_analysis_2025"
-format: pdf
+format: html
 execute:
   echo: false
   freeze: auto
@@ -63,3 +63,21 @@ data |>
 6月調査の方は男女比率がほぼ同じ。
 
 ## 世代（v2）
+
+```{r}
+data |> 
+  ggplot(aes(y = v2_gen, fill = v2_gen)) +
+  geom_bar()
+```
+50代が多く、30代と70代、10代は少ない。
+
+```{r}
+data |> 
+  ggplot(aes(y = v2_gen, fill = v2_gen)) +
+  geom_bar() +
+  facet_wrap(~date)
+```
+
+7月の方が50代が多い。6月は10代がかなり少ない（まだ夏休み前だとは思うが）。
+
+## 居住地（道内or道外）
