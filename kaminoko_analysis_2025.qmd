@@ -15,6 +15,7 @@ execute:
 #| include: false
 
 library(tidyverse)
+library(patchwork)
 ```
 
 ## データインポート
@@ -22,13 +23,15 @@ library(tidyverse)
 ```{r}
 #| include: false
 
-data <- read_csv("kaminoko2025_all.csv")
+df <- read_csv("kaminoko2025_all.csv")
 ```
 
-## 再コーディング
+## 変数名変更or再コーディング
 
 ```{r}
-# 必要に応じて追加
+# 変数名を間違って入力していたので修正。
+df <- df %>% 
+  rename_with(~ gsub("^q12", "v12", .x)) 
 
 ```
 
@@ -37,15 +40,15 @@ data <- read_csv("kaminoko2025_all.csv")
 ## 実施日
 
 ```{r}
-data |> 
+df |> 
   ggplot(aes(y = date, fill = date)) +
   geom_bar()
 ```
 
-## 性別（v1）
+## v1(性別)
 
 ```{r}
-data |> 
+df |> 
   ggplot(aes(y = v1_sex, fill = v1_sex)) +
   geom_bar()
 ```
@@ -53,7 +56,7 @@ data |>
 男性の方がやや多め。
 
 ```{r}
-data |> 
+df |> 
   filter(!is.na(v1_sex)) |> 
   ggplot(aes(y = v1_sex, fill = v1_sex)) +
   geom_bar() +
@@ -62,17 +65,18 @@ data |>
 
 6月調査の方は男女比率がほぼ同じ。
 
-## 世代（v2）
+## v2(世代)
 
 ```{r}
-data |> 
+df |> 
   ggplot(aes(y = v2_gen, fill = v2_gen)) +
   geom_bar()
 ```
+
 50代が多く、30代と70代、10代は少ない。
 
 ```{r}
-data |> 
+df |> 
   ggplot(aes(y = v2_gen, fill = v2_gen)) +
   geom_bar() +
   facet_wrap(~date)
@@ -80,4 +84,309 @@ data |>
 
 7月の方が50代が多い。6月は10代がかなり少ない（まだ夏休み前だとは思うが）。
 
-## 居住地（道内or道外）
+## v3(居住地)
+
+```{r}
+df |> 
+  ggplot(aes(y = v3_hokkaido, fill = v3_hokkaido)) +
+  geom_bar()
+```
+
+道内・道外はほぼ同数。
+
+```{r}
+df |> 
+  ggplot(aes(y = v3_hokkaido, fill = v3_hokkaido)) +
+  geom_bar() +
+  facet_wrap(~date)
+```
+
+7月の方が道外がやや多い（夏休みだからか）
+
+## v4(北海道訪問回数)
+
+```{r}
+df |> 
+  filter(v3_hokkaido == "道外") %>%  # 道外居住者のみに対する質問なので道内を外す。
+  ggplot(aes(y = v4_hokkaido_visits, fill = v4_hokkaido_visits)) +
+  geom_bar() 
+
+```
+
+4回以上が多数派。
+
+```{r}
+df |> 
+  filter(v3_hokkaido == "道外") %>%  # 道外居住者のみに対する質問なので道内を外す。
+  ggplot(aes(y = v4_hokkaido_visits, fill = v4_hokkaido_visits)) +
+  geom_bar() +
+  facet_wrap(~date)
+
+```
+
+7月調査の方が3回目が多め。
+
+## v5(同行者の人数)
+
+```{r}
+df |> 
+  ggplot(aes(y = factor(v5_companions_cnt), fill = factor(v5_companions_cnt))) + # 数値型のままだと色分けしてくれないのでファクター化。
+  geom_bar() 
+```
+
+2人連れ（自分含めて2人）という人が多い。
+
+```{r}
+df |> 
+  ggplot(aes(y = factor(v5_companions_cnt), fill = factor(v5_companions_cnt))) +
+  geom_bar() +
+  facet_wrap(~date)
+```
+
+7月は3人連れ、4人連れもそこそこ多くなっている。
+
+## v6(神の子池訪問回数)
+
+```{r}
+df |> 
+  ggplot(aes(y = v6_kaminoko_visits, fill = v6_kaminoko_visits)) +
+  geom_bar() 
+```
+
+初めて神の子池を訪れたという人が多い。リピーターは少なめ。
+
+```{r}
+df |> 
+  ggplot(aes(y = v6_kaminoko_visits, fill = v6_kaminoko_visits)) +
+  geom_bar() +
+  facet_wrap(~date)
+```
+
+日付による傾向の違いはあまり見られない。
+
+```{r}
+df |> 
+  filter(!is.na(v3_hokkaido)) %>% 
+  ggplot(aes(y = v6_kaminoko_visits, fill = v6_kaminoko_visits)) +
+  geom_bar() +
+  facet_wrap(~v3_hokkaido)
+```
+
+道外の人の方が初めて神の子池を訪れたという人が多い（当たり前か）
+
+```{r}
+df |> 
+  filter(
+    !is.na(v4_hokkaido_visits),
+    !is.na(v6_kaminoko_visits)) %>% 
+  ggplot(aes(y = v6_kaminoko_visits, fill = v6_kaminoko_visits)) +
+  geom_bar() +
+  facet_wrap(~v4_hokkaido_visits)
+```
+
+道外居住者について、神の子池を訪れるのは大半が北海道を4回以上訪れたことのある人（北海道観光を十分経験した人が訪れる傾向がある）。ただ、リピーターは非常に少ない。
+
+## v7 (訪問のきっかけ)
+
+```{r}
+df %>% 
+  filter(!is.na(v3_hokkaido)) %>% 
+  group_by(v3_hokkaido) %>% 
+  summarise(
+    web = sum(v7_web, na.rm = TRUE),
+    other_web = sum(v7_other_web, na.rm = TRUE),
+    web_reviews = sum(v7_web_reviews, na.rm = TRUE),
+    tv = sum(v7_tv, na.rm = TRUE),
+    travel_agency = sum(v7_travel_agency, na.rm = TRUE),
+    magazine = sum(v7_magazine, na.rm = TRUE),
+    .groups = "drop"
+  ) %>% 
+  pivot_longer(
+    -v3_hokkaido,
+    names_to = "choice",
+    values_to = "count"
+  ) %>% 
+  ggplot(aes(x = count, y = choice)) +
+  geom_col() +
+  facet_wrap(~v3_hokkaido)
+
+
+
+```
+
+道外居住者はネットの口コミや雑誌がきっかけで来た人が多い。一方、道内居住者は清里町・観光協会のサイトを見た来た人がそこそこ多い。
+
+```{r}
+choices <- c("v7_web","v7_other_web","v7_web_reviews","v7_tv","v7_travel_agency","v7_magazine")
+df2 <- df %>% dplyr::filter(date == "6月14-15日", !is.na(v3_hokkaido))
+
+df2 %>%
+  group_by(v3_hokkaido) %>% 
+  summarise(across(all_of(choices), ~ mean(.x == 1, na.rm = TRUE)),
+            .groups = "drop") %>%  # ←割合が一発で出る
+  pivot_longer(-v3_hokkaido, names_to="choice", values_to="p") %>%
+  ggplot(aes(x = p, y = choice)) +
+  geom_col() +
+  scale_x_continuous(
+    limits = c(0, 1),
+    labels = scales::percent
+    ) +
+  facet_wrap(~v3_hokkaido)
+```
+
+回答割合で見てみた。
+
+## v8(期待度)
+
+```{r}
+p1 <- df %>% 
+  filter(date == "6月14-15日") %>% 
+  ggplot(aes(x = "", y = v8_scenery_expectation)) +
+  geom_boxplot()
+
+p2 <- df %>% 
+  filter(date == "6月14-15日") %>% 
+  ggplot(aes(x = "", y = v8_general_expectation)) +
+  geom_boxplot()
+
+p1 + p2
+```
+
+期待度の中央値は8。景色の期待度でも総合的期待度でも傾向は変わらない。 まあ、そもそも期待してなければ来ないはずなので、期待度が高くなるのは当然か。
+
+## v9(神の子池への満足度)
+
+```{r}
+p1 <- df %>% 
+  filter(!is.na(v3_hokkaido)) %>% 
+  ggplot(aes(x = v3_hokkaido, y = v9_scenery_satisfaction)) +
+  geom_boxplot()
+
+p2 <- df %>% 
+  filter(!is.na(v3_hokkaido)) %>% 
+  ggplot(aes(x = v3_hokkaido, y = v9_access_satisfaction)) +
+  geom_boxplot()
+
+p3 <- df %>% 
+  filter(!is.na(v3_hokkaido)) %>% 
+  ggplot(aes(x = v3_hokkaido, y = v9_facility_satisfaction)) +
+  geom_boxplot()
+
+p4 <- df %>% 
+  filter(!is.na(v3_hokkaido)) %>% 
+  ggplot(aes(x = v3_hokkaido, y = v9_tourist_spot_satisfaction)) +
+  geom_boxplot()
+
+p5 <- df %>% 
+  filter(!is.na(v3_hokkaido)) %>% 
+  ggplot(aes(x = v3_hokkaido, y = v9_general_satisfaction)) +
+  geom_boxplot()
+
+p1 + p2 + p3 + p4 + p5
+
+```
+
+-   道内・道外居住者で満足度傾向にあまり差は見られない。
+- アクセス、設備、周辺観光スポットの満足度は全体的に低い傾向。
+
+## v10(神の子池のどの側面に満足しているか)
+
+```{r}
+p1 <- df %>% 
+  filter(!is.na(v3_hokkaido), date == "7月19-20日") %>% 
+  ggplot(aes(x = v3_hokkaido, y = v10_kaminoko_scenery_satis)) +
+  geom_boxplot()
+
+p2 <- df %>% 
+  filter(!is.na(v3_hokkaido), date == "7月19-20日") %>% 
+  ggplot(aes(x = v3_hokkaido, y = v10_kaminoko_silence_satis)) +
+  geom_boxplot()
+
+p3 <- df %>% 
+  filter(!is.na(v3_hokkaido), date == "7月19-20日") %>% 
+  ggplot(aes(x = v3_hokkaido, y = v10_kaminoko_forest_satis)) +
+  geom_boxplot()
+
+p4 <- df %>% 
+  filter(!is.na(v3_hokkaido), date == "7月19-20日") %>% 
+  ggplot(aes(x = v3_hokkaido, y = v10_kaminoko_achievement_satis)) +
+  geom_boxplot()
+
+
+p1 + p2 + p3 + p4
+```
+- 道外居住者は美しさを評価するが、道内居住者は美しさ以外の側面も評価する傾向（道外の人たちはweb口コミや）。
+- また、道外居住者の方が分布がやや広め。
+
+
+## v11(再訪意思)
+
+```{r}
+df %>% 
+  filter(date == "6月14-15日") %>% 
+  mutate(
+    v11_revisit_intention = factor(
+      v11_revisit_intention,
+      levels = c(
+        "すでに再訪の予定がある",
+        "近くに来る機会を積極的に作って再訪したい",
+        "近くに来る機会があったら再訪したい",
+        "近くに来る機会があっても再訪したいとは思わない"
+      )
+    )
+  ) %>% 
+  ggplot(aes(y = v11_revisit_intention)) +
+  geom_bar()
+
+```
+「近くに来る機会があったら再訪したい」が多数。
+
+
+```{r}
+df %>% 
+  filter(date == "6月14-15日", !is.na(v3_hokkaido)) %>% 
+  mutate(
+    v11_revisit_intention = factor(
+      v11_revisit_intention,
+      levels = c(
+        "すでに再訪の予定がある",
+        "近くに来る機会を積極的に作って再訪したい",
+        "近くに来る機会があったら再訪したい",
+        "近くに来る機会があっても再訪したいとは思わない"
+      )
+    )
+  ) %>% 
+  ggplot(aes(y = v11_revisit_intention)) +
+  geom_bar() +
+  facet_wrap(~v3_hokkaido)
+
+```
+道内居住者の方が再訪意思がやや高い。
+
+## v12(交流意思)
+
+```{r}
+df %>% 
+  filter(!is.na(v3_hokkaido)) %>% 
+  group_by(v3_hokkaido) %>% 
+  summarise(
+    event = sum(v12_interact_by_event, na.rm = TRUE),
+    market = sum(v12_interact_by_market, na.rm = TRUE),
+    gueshouse = sum(v12_interact_by_guesthouse, na.rm = TRUE),
+    no_interact  = sum(v12_unwilling_to_interact, na.rm = TRUE),
+    unaware = sum(v12_unaware_of_location, na.rm = TRUE),
+    .groups = "drop"
+  ) %>% 
+  pivot_longer(
+    -v3_hokkaido,
+    names_to = "choice",
+    values_to = "count"
+  ) %>% 
+  ggplot(aes(x = count, y = choice)) +
+  geom_col() +
+  facet_wrap(~v3_hokkaido)
+```
+- 直売所があれば商品を見てみたい、という人が多い。
+- 道内の方が「イベントがあれば参加したい」という人が多い（が、「交流したくない」という人も多い）。
+
+
