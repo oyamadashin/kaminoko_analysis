@@ -1,0 +1,148 @@
+---
+title: "kaminoko_2025_eda"
+format: html
+execute:
+  echo: false
+  freeze: auto
+  warning: false
+---
+
+## パッケージ読み込み
+
+```{r}
+#| include: false
+
+library(tidyverse)
+library(patchwork)
+```
+
+## データインポート
+
+```{r}
+#| include: false
+
+df <- read_csv("kaminoko2025_all.csv")
+
+
+```
+
+## 変数名変更or再コーディング
+
+```{r}
+# 変数名を間違って入力していたので修正。
+df <- df |> 
+  rename_with(~ gsub("^q12", "v12", .x)) 
+
+# 北海道内（外）と道内（外）が混じっていたので道内（外）に統一
+df <- df |> 
+  mutate(
+    v3_hokkaido = case_when(
+      v3_hokkaido == "北海道内" ~ "道内",
+      v3_hokkaido == "北海道外" ~ "道外",
+      TRUE ~ v3_hokkaido
+    )
+  )
+
+# 日付をファクタ化してレベル設定
+df <- df |> 
+  mutate(
+    date = factor(date, levels = c("6月8日", "6月14-15日", "7月19-20日"))
+  )
+
+# 1,2のままだと使いにくいので、カテゴリー名をかえる。
+df <- df |> 
+  mutate(
+    v13_citizen_consumer = case_when(
+      v13_citizen_consumer == 1 ~ "市民選好",
+      v13_citizen_consumer == 2 ~ "消費者選好",
+      TRUE ~ NA_character_
+    )
+  )
+```
+
+# EDA
+
+## なぜ20代が多い？
+
+```{r}
+df |> 
+  ggplot(aes(y = v2_gen, fill = v2_gen)) +
+  geom_bar() +
+  facet_wrap(~date)
+```
+
+-   このように、20代がなぜか多いため、分布がフタコブになっている。
+
+```{r}
+df |> 
+  ggplot(aes(y = v2_gen, fill = v2_gen)) +
+  geom_bar() +
+  facet_wrap(~v3_hokkaido)
+```
+
+-   道外からの来訪者の方が50代以上が多い。一方、道内からの来訪者は20代が多い　→　道外から来るのは時間だけでなくお金もある年配の世代。一方、時間があってもお金のない若い世代は道内の無料観光スポットとして神の子池を訪れているのでは？
+-   世代による観光様式の違いがフタコブ分布の原因ではないだろうか。
+
+```{r}
+df |> 
+  ggplot(aes(y = v2_gen, fill = v2_gen)) +
+  geom_bar() +
+  facet_grid(date~v3_hokkaido)
+```
+
+-   7月19～21日は海の日で3連休だ。道外からの50代層は仕事があるのでこの3連休をねらって北海道旅行を計画していたのだろう。そのため、7月19～20日のデータでは道外の50代が非常に多くなっている。
+
+### TODO
+
+-   となると、20代はWTPが低い傾向なのでは。
+-   道外の50代以上層がどんな人たちなのか、もう少し分析の余地はあるな。同行者の人数とかも考慮しようか。
+
+### 仮結論
+
+-   20代の動向は50代の動向とセットで考えるべき。道外から来るのは時間だけでなくお金もある年配の世代。一方、時間があってもお金のない若い世代は道内の無料観光スポットとして神の子池を訪れているのでは？つまり、観光様式の違いがフタコブ分布を生み出している。
+-   また、道外50代は7月の3連休に非常に多く来ている。彼らは仕事があるので、休日の状況によって行動を敏感に変える。一方、道内の50代にはそうした休日状況による行動のちがいはみられない。
+
+## それぞれの世代はどんなタイプの人たち？
+
+### 世代×同行者人数
+
+- まず、それぞれの世代によって同行者の人数がどうちがうかをみてみよう。
+
+
+```{r}
+df |> 
+  ggplot(aes(y = v2_gen, fill = v2_gen)) +
+  geom_bar() +
+  facet_grid(date~v5_companions_cnt)
+```
+- 7月の3連休には50代、60代で1人旅という人が少しいる。彼らが道内か道外かですこしイメージが変わってくると思う。50代、60代の人がひとりでふらりと近場の観光地を訪れる、というのは、既婚者でもありうる気がする。しかし、道外からひとりで神の子池まで来る50代、60代というのは、少し変わった人ではないだろうか？→こういう人たちは神の子池に来るまでの「達成感」を重視するのでは。
+- 20代は3人連れ、4人連れという人も多い。大学生グループ、あるいは独身の若者グループだろうか。7月の連休で、40代の4人連れがやや多いのは、家族連れなのかもしれない。
+- 50代は2人連れの人が多い（とくに7月の3連休）。子供に手がかからなくなってきたころの年配夫婦というイメージだろうか。
+
+### 世代×来訪きっかけ
+
+```{r}
+df |> 
+  ggplot(aes(y = v2_gen, fill = v2_gen)) +
+  geom_bar() +
+  facet_grid(date~v7_tv)
+
+
+```
+## WTP関連
+
+```{r}
+df |> 
+  filter(!is.na(v14_bid1) & !is.na(v1_sex)) |> 
+  group_by(v14_bid1_wtp, v1_sex) |> 
+  summarise(
+    yes_rate = mean(v14_bid1 == "支払う"),
+    n = n()
+  ) |> 
+  ggplot(aes(x = v14_bid1_wtp, y = yes_rate)) +
+  geom_point(size = 2) +
+  geom_line() +
+  scale_y_continuous(labels = scales::percent) +
+  facet_wrap(~v1_sex)
+```
+

@@ -1,0 +1,138 @@
+---
+title: "r_practice"
+output: html_document
+date: "2026-01-21"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 準備
+
+```{r}
+library(tidyverse)
+library(nycflights13)
+```
+
+## 練習問題
+
+### 6.
+```{r}
+flights |> 
+  mutate(hour = dep_time %/% 100) |> 
+  group_by(year, month, day, hour) |> 
+  summarise(
+    dep_delay = mean(dep_delay, na.rm = TRUE),
+    n = n(),
+    .groups = "drop"
+  ) |> 
+  filter(n > 5) |> 
+  group_by(year, month, day) |> 
+  mutate(
+    lag_dep_delay = lag(dep_delay)
+  ) |> 
+  filter(!is.na(lag_dep_delay)) |> 
+  ggplot(aes(x = lag_dep_delay, y = dep_delay)) +
+  geom_point()
+    
+  
+```
+
+### 7. 
+Look at each destination. Can you find flights that are suspiciously fast (i.e. flights that represent a potential data entry error)? Compute the air time of a flight relative to the shortest flight to that destination. Which flights were most delayed in the air?
+
+
+
+```{r}
+
+flights |> 
+  mutate(
+    dep_time_minute = dep_time %/% 100 * 60 + dep_time %% 100,
+    arr_time_minute = arr_time %/% 100 * 60 + arr_time %% 100,
+    flight_time_minute = arr_time_minute - dep_time_minute
+  ) |> 
+  group_by(dest) |> 
+  filter(flight_time_minute == min(flight_time_minute)) |> 
+  ungroup() |> 
+  arrange(flight_time_minute)
+
+
+```
+
+### 8.
+Find all destinations that are flown by at least two carriers. Use those destinations to come up with a relative ranking of the carriers based on their performance for the same destination.
+少なくとも2つの航空会社によって運航されているすべての目的地を見つけなさい。
+それらの目的地を用いて、同じ目的地に対する各航空会社のパフォーマンスに基づく相対的なランキングを作りなさい。
+
+
+
+```{r}
+flights |> 
+  group_by(dest) |> 
+  filter(n_distinct(carrier) >= 2) |> 
+  group_by(dest, carrier) |> 
+  filter(n() > 10) |> 
+  summarise(
+    n = n(),
+    dep_delay_mean = mean(dep_delay, na.rm = TRUE),
+    .groups = "drop"
+  ) |> 
+  group_by(dest) |> 
+  mutate(
+    rank = min_rank(dep_delay_mean)
+  ) |> 
+  group_by(carrier) |> 
+  summarise(
+    performance = mean(rank, na.rm = TRUE)
+  ) |> 
+  arrange(performance)
+
+```
+
+# 13.6 数値要約
+
+## 13.6.1 中心
+
+```{r}
+flights |> 
+  group_by(year, month, day) |> 
+  summarise(
+    mean = mean(dep_delay, na.rm = TRUE),
+    median = median(dep_delay, na.rm = TRUE),
+    n = n(),
+    .groups = "drop"
+  ) |> 
+  ggplot(aes(x = mean, y = median)) +
+  geom_abline(slope = 1, intercept = 0, color = "white", linewidth = 2) +
+  geom_point()
+
+
+```
+
+## 13.6.2 最小値、最大値、分位数
+
+## 練習問題
+
+
+```{r}
+flights
+```
+
+
+```{r}
+library(lubridate)
+
+flights |> 
+  filter(dest == "EGE" & origin == "EWR") |> 
+  mutate(
+    date = make_date(year, month, day),
+    day_from_jan1 = yday(date)
+  ) |> 
+  ggplot(aes(x = day_from_jan1, y = distance)) +
+  geom_step() 
+  
+
+
+```
+

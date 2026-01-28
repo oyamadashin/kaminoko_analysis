@@ -24,15 +24,45 @@ library(patchwork)
 #| include: false
 
 df <- read_csv("kaminoko2025_all.csv")
+
+
 ```
 
 ## 変数名変更or再コーディング
 
 ```{r}
 # 変数名を間違って入力していたので修正。
-df <- df %>% 
+df <- df |> 
   rename_with(~ gsub("^q12", "v12", .x)) 
 
+df <- df |> 
+  rename_with(~ gsub("^q14", "v14", .x)) 
+
+# 北海道内（外）と道内（外）が混じっていたので道内（外）に統一
+df <- df |> 
+  mutate(
+    v3_hokkaido = case_when(
+      v3_hokkaido == "北海道内" ~ "道内",
+      v3_hokkaido == "北海道外" ~ "道外",
+      TRUE ~ v3_hokkaido
+    )
+  ) 
+
+# 日付をファクタ化してレベル設定
+df <- df |> 
+  mutate(
+    date = factor(date, levels = c("6月8日", "6月14-15日", "7月19-20日"))
+  ) 
+
+# 1,2のままだと使いにくいので、カテゴリー名をかえる。
+df <- df |> 
+  mutate(
+    v13_citizen_consumer = case_when(
+      v13_citizen_consumer == 1 ~ "市民選好",
+      v13_citizen_consumer == 2 ~ "消費者選好",
+      TRUE ~ NA_character_
+    )
+  )
 ```
 
 # 単純集計
@@ -107,7 +137,7 @@ df |>
 
 ```{r}
 df |> 
-  filter(v3_hokkaido == "道外") %>%  # 道外居住者のみに対する質問なので道内を外す。
+  filter(v3_hokkaido == "道外") |>  # 道外居住者のみに対する質問なので道内を外す。
   ggplot(aes(y = v4_hokkaido_visits, fill = v4_hokkaido_visits)) +
   geom_bar() 
 
@@ -117,7 +147,7 @@ df |>
 
 ```{r}
 df |> 
-  filter(v3_hokkaido == "道外") %>%  # 道外居住者のみに対する質問なので道内を外す。
+  filter(v3_hokkaido == "道外") |>  # 道外居住者のみに対する質問なので道内を外す。
   ggplot(aes(y = v4_hokkaido_visits, fill = v4_hokkaido_visits)) +
   geom_bar() +
   facet_wrap(~date)
@@ -166,7 +196,7 @@ df |>
 
 ```{r}
 df |> 
-  filter(!is.na(v3_hokkaido)) %>% 
+  filter(!is.na(v3_hokkaido)) |> 
   ggplot(aes(y = v6_kaminoko_visits, fill = v6_kaminoko_visits)) +
   geom_bar() +
   facet_wrap(~v3_hokkaido)
@@ -178,7 +208,7 @@ df |>
 df |> 
   filter(
     !is.na(v4_hokkaido_visits),
-    !is.na(v6_kaminoko_visits)) %>% 
+    !is.na(v6_kaminoko_visits)) |> 
   ggplot(aes(y = v6_kaminoko_visits, fill = v6_kaminoko_visits)) +
   geom_bar() +
   facet_wrap(~v4_hokkaido_visits)
@@ -189,9 +219,9 @@ df |>
 ## v7 (訪問のきっかけ)
 
 ```{r}
-df %>% 
-  filter(!is.na(v3_hokkaido)) %>% 
-  group_by(v3_hokkaido) %>% 
+df |> 
+  filter(!is.na(v3_hokkaido)) |> 
+  group_by(v3_hokkaido) |> 
   summarise(
     web = sum(v7_web, na.rm = TRUE),
     other_web = sum(v7_other_web, na.rm = TRUE),
@@ -200,12 +230,12 @@ df %>%
     travel_agency = sum(v7_travel_agency, na.rm = TRUE),
     magazine = sum(v7_magazine, na.rm = TRUE),
     .groups = "drop"
-  ) %>% 
+  ) |> 
   pivot_longer(
     -v3_hokkaido,
     names_to = "choice",
     values_to = "count"
-  ) %>% 
+  ) |> 
   ggplot(aes(x = count, y = choice)) +
   geom_col() +
   facet_wrap(~v3_hokkaido)
@@ -218,13 +248,13 @@ df %>%
 
 ```{r}
 choices <- c("v7_web","v7_other_web","v7_web_reviews","v7_tv","v7_travel_agency","v7_magazine")
-df2 <- df %>% dplyr::filter(date == "6月14-15日", !is.na(v3_hokkaido))
+df2 <- df |> dplyr::filter(date == "6月14-15日", !is.na(v3_hokkaido))
 
-df2 %>%
-  group_by(v3_hokkaido) %>% 
+df2 |>
+  group_by(v3_hokkaido) |> 
   summarise(across(all_of(choices), ~ mean(.x == 1, na.rm = TRUE)),
-            .groups = "drop") %>%  # ←割合が一発で出る
-  pivot_longer(-v3_hokkaido, names_to="choice", values_to="p") %>%
+            .groups = "drop") |>  # ←割合が一発で出る
+  pivot_longer(-v3_hokkaido, names_to="choice", values_to="p") |>
   ggplot(aes(x = p, y = choice)) +
   geom_col() +
   scale_x_continuous(
@@ -239,13 +269,13 @@ df2 %>%
 ## v8(期待度)
 
 ```{r}
-p1 <- df %>% 
-  filter(date == "6月14-15日") %>% 
+p1 <- df |> 
+  filter(date == "6月14-15日") |> 
   ggplot(aes(x = "", y = v8_scenery_expectation)) +
   geom_boxplot()
 
-p2 <- df %>% 
-  filter(date == "6月14-15日") %>% 
+p2 <- df |> 
+  filter(date == "6月14-15日") |> 
   ggplot(aes(x = "", y = v8_general_expectation)) +
   geom_boxplot()
 
@@ -257,28 +287,28 @@ p1 + p2
 ## v9(神の子池への満足度)
 
 ```{r}
-p1 <- df %>% 
-  filter(!is.na(v3_hokkaido)) %>% 
+p1 <- df |> 
+  filter(!is.na(v3_hokkaido)) |> 
   ggplot(aes(x = v3_hokkaido, y = v9_scenery_satisfaction)) +
   geom_boxplot()
 
-p2 <- df %>% 
-  filter(!is.na(v3_hokkaido)) %>% 
+p2 <- df |> 
+  filter(!is.na(v3_hokkaido)) |> 
   ggplot(aes(x = v3_hokkaido, y = v9_access_satisfaction)) +
   geom_boxplot()
 
-p3 <- df %>% 
-  filter(!is.na(v3_hokkaido)) %>% 
+p3 <- df |> 
+  filter(!is.na(v3_hokkaido)) |> 
   ggplot(aes(x = v3_hokkaido, y = v9_facility_satisfaction)) +
   geom_boxplot()
 
-p4 <- df %>% 
-  filter(!is.na(v3_hokkaido)) %>% 
+p4 <- df |> 
+  filter(!is.na(v3_hokkaido)) |> 
   ggplot(aes(x = v3_hokkaido, y = v9_tourist_spot_satisfaction)) +
   geom_boxplot()
 
-p5 <- df %>% 
-  filter(!is.na(v3_hokkaido)) %>% 
+p5 <- df |> 
+  filter(!is.na(v3_hokkaido)) |> 
   ggplot(aes(x = v3_hokkaido, y = v9_general_satisfaction)) +
   geom_boxplot()
 
@@ -287,43 +317,43 @@ p1 + p2 + p3 + p4 + p5
 ```
 
 -   道内・道外居住者で満足度傾向にあまり差は見られない。
-- アクセス、設備、周辺観光スポットの満足度は全体的に低い傾向。
+-   アクセス、設備、周辺観光スポットの満足度は全体的に低い傾向。
 
 ## v10(神の子池のどの側面に満足しているか)
 
 ```{r}
-p1 <- df %>% 
-  filter(!is.na(v3_hokkaido), date == "7月19-20日") %>% 
+p1 <- df |> 
+  filter(!is.na(v3_hokkaido), date == "7月19-20日") |> 
   ggplot(aes(x = v3_hokkaido, y = v10_kaminoko_scenery_satis)) +
   geom_boxplot()
 
-p2 <- df %>% 
-  filter(!is.na(v3_hokkaido), date == "7月19-20日") %>% 
+p2 <- df |> 
+  filter(!is.na(v3_hokkaido), date == "7月19-20日") |> 
   ggplot(aes(x = v3_hokkaido, y = v10_kaminoko_silence_satis)) +
   geom_boxplot()
 
-p3 <- df %>% 
-  filter(!is.na(v3_hokkaido), date == "7月19-20日") %>% 
+p3 <- df |> 
+  filter(!is.na(v3_hokkaido), date == "7月19-20日") |> 
   ggplot(aes(x = v3_hokkaido, y = v10_kaminoko_forest_satis)) +
   geom_boxplot()
 
-p4 <- df %>% 
-  filter(!is.na(v3_hokkaido), date == "7月19-20日") %>% 
+p4 <- df |> 
+  filter(!is.na(v3_hokkaido), date == "7月19-20日") |> 
   ggplot(aes(x = v3_hokkaido, y = v10_kaminoko_achievement_satis)) +
   geom_boxplot()
 
 
 p1 + p2 + p3 + p4
 ```
-- 道外居住者は美しさを評価するが、道内居住者は美しさ以外の側面も評価する傾向（道外の人たちはweb口コミや）。
-- また、道外居住者の方が分布がやや広め。
 
+-   道外居住者は美しさを評価するが、道内居住者は美しさ以外の側面も評価する傾向（道外の人たちはweb口コミや）。
+-   また、道外居住者の方が分布がやや広め。
 
 ## v11(再訪意思)
 
 ```{r}
-df %>% 
-  filter(date == "6月14-15日") %>% 
+df |> 
+  filter(date == "6月14-15日") |> 
   mutate(
     v11_revisit_intention = factor(
       v11_revisit_intention,
@@ -334,17 +364,17 @@ df %>%
         "近くに来る機会があっても再訪したいとは思わない"
       )
     )
-  ) %>% 
+  ) |> 
   ggplot(aes(y = v11_revisit_intention)) +
   geom_bar()
 
 ```
+
 「近くに来る機会があったら再訪したい」が多数。
 
-
 ```{r}
-df %>% 
-  filter(date == "6月14-15日", !is.na(v3_hokkaido)) %>% 
+df |> 
+  filter(date == "6月14-15日", !is.na(v3_hokkaido)) |> 
   mutate(
     v11_revisit_intention = factor(
       v11_revisit_intention,
@@ -355,20 +385,21 @@ df %>%
         "近くに来る機会があっても再訪したいとは思わない"
       )
     )
-  ) %>% 
+  ) |> 
   ggplot(aes(y = v11_revisit_intention)) +
   geom_bar() +
   facet_wrap(~v3_hokkaido)
 
 ```
+
 道内居住者の方が再訪意思がやや高い。
 
 ## v12(交流意思)
 
 ```{r}
-df %>% 
-  filter(!is.na(v3_hokkaido)) %>% 
-  group_by(v3_hokkaido) %>% 
+df |> 
+  filter(!is.na(v3_hokkaido)) |> 
+  group_by(v3_hokkaido) |> 
   summarise(
     event = sum(v12_interact_by_event, na.rm = TRUE),
     market = sum(v12_interact_by_market, na.rm = TRUE),
@@ -376,17 +407,138 @@ df %>%
     no_interact  = sum(v12_unwilling_to_interact, na.rm = TRUE),
     unaware = sum(v12_unaware_of_location, na.rm = TRUE),
     .groups = "drop"
-  ) %>% 
+  ) |> 
   pivot_longer(
     -v3_hokkaido,
     names_to = "choice",
     values_to = "count"
-  ) %>% 
+  ) |> 
   ggplot(aes(x = count, y = choice)) +
   geom_col() +
   facet_wrap(~v3_hokkaido)
 ```
-- 直売所があれば商品を見てみたい、という人が多い。
-- 道内の方が「イベントがあれば参加したい」という人が多い（が、「交流したくない」という人も多い）。
+
+-   直売所があれば商品を見てみたい、という人が多い。
+-   道内の方が「イベントがあれば参加したい」という人が多い（が、「交流したくない」という人も多い）。
 
 
+## v13-14（支払意思）
+
+### 初回WTP
+
+```{r}
+df |> 
+  filter(!is.na(v14_bid1)) |> 
+  group_by(v14_bid1_wtp) |> 
+  summarise(
+    yes_rate = mean(v14_bid1 == "支払う"),
+    n = n()
+  ) |> 
+  ggplot(aes(x = v14_bid1_wtp, y = yes_rate)) +
+  geom_point(size = 2) +
+  geom_line() +
+  geom_text(aes(label = paste0(n, "人")), vjust = -0.7, size = 3) +
+  scale_x_continuous(breaks = seq(0, 1000, by = 100)) +
+  scale_y_continuous(labels = scales::percent) 
+```
+300円より500円の方がなぜかyes率がわずかに高い。誤差の範囲だが、あまり価格差が意識されていない？
+
+
+```{r}
+df |> 
+  filter(!is.na(v14_bid1)) |> 
+  group_by(v14_bid1_wtp, v13_citizen_consumer) |> 
+  summarise(
+    yes_rate = mean(v14_bid1 == "支払う"),
+    n = n()
+  ) |> 
+  ggplot(aes(x = v14_bid1_wtp, y = yes_rate)) +
+  geom_point(size = 2) +
+  geom_line() +
+  facet_wrap(~v13_citizen_consumer) +
+  scale_x_continuous(breaks = seq(0, 1000, by = 100)) +
+  scale_y_continuous(labels = scales::percent) +
+  geom_text(aes(label = paste0(n, "人")), vjust = -0.7, size = 3) 
+
+```
+消費者選好の方がやや分布が歪んでいる。
+
+### 2回目WTP（前回yes）
+
+```{r}
+df |> 
+  filter(!is.na(v14_bid2_yes)) |> 
+  group_by(v14_bid2_yes_wtp) |> 
+  summarise(
+    yes_rate = mean(v14_bid2_yes == "支払う"),
+    n = n()
+  ) |> 
+  ggplot(aes(x = v14_bid2_yes_wtp, y = yes_rate)) +
+  geom_point(size = 2) +
+  geom_line() +
+  geom_text(aes(label = paste0(n, "人")), vjust = -0.7, size = 3) +
+  scale_x_continuous(breaks = seq(0, 1500, by = 100)) + 
+  scale_y_continuous(labels = scales::percent) 
+```
+1回目で「支払う」を選択した人の場合、2回目のwtpの回答分布に異常がみられない。
+
+
+```{r}
+df |> 
+  filter(!is.na(v14_bid2_yes)) |> 
+  group_by(v14_bid2_yes_wtp, v13_citizen_consumer) |> 
+  summarise(
+    yes_rate = mean(v14_bid2_yes == "支払う"),
+    n = n()
+  ) |> 
+  ggplot(aes(x = v14_bid2_yes_wtp, y = yes_rate)) +
+  geom_point(size = 2) +
+  geom_line() +
+  geom_text(aes(label = paste0(n, "人")), vjust = -0.7, size = 3) +
+  scale_x_continuous(breaks = seq(0, 1500, by = 100)) + 
+  scale_y_continuous(labels = scales::percent) +
+  facet_wrap(~v13_citizen_consumer)
+```
+
+### 2回目WTP（前回no）
+
+```{r}
+df |> 
+  filter(!is.na(v14_bid2_no)) |> 
+  group_by(v14_bid2_no_wtp) |> 
+  summarise(
+    yes_rate = mean(v14_bid2_no == "支払う"),
+    n = n()
+  ) |> 
+  ggplot(aes(x = v14_bid2_no_wtp, y = yes_rate)) +
+  geom_point( size = 2) +
+  geom_line() +
+  geom_text(aes(label = paste0(n, "人")), vjust = -0.7, size = 3) +
+  scale_x_continuous(breaks = seq(0, 1500, by = 100)) + 
+  scale_y_continuous(labels = scales::percent) 
+
+```
+- 第1回目で「支払わない」と回答した人は、サンプル数が比較的少ないせいもあるかもしれないが、分布がかなりおかしい。
+- 「2回とも支払わないを選択したらケチだと思われそうだから、バランスをとって今回は支払うを選択しよう」のような心理がはたらき、分布が歪んでしまったのだろうか。
+- 「50円払うくらいならいっそ0円にしてほしい」と考え、「支払わない」を選択した人が多いのではないか。また、500円の人に対する1回目の提示額は1000円だ。1000円から500円だと減少幅が大きいので「支払う」が多くなっているのかもしれない（1回目と2回目の提示額パターンは次の通り：1000円→500円、500円→300円、300円→100円、100円→50円）。
+
+
+```{r}
+df |> 
+  filter(!is.na(v14_bid2_no)) |> 
+  group_by(v14_bid2_no_wtp, v13_citizen_consumer) |> 
+  summarise(
+    yes_rate = mean(v14_bid2_no == "支払う"),
+    n = n()
+  ) |> 
+  ggplot(aes(x = v14_bid2_no_wtp, y = yes_rate)) +
+  geom_point( size = 2) +
+  geom_line() +
+  geom_text(aes(label = paste0(n, "人")), vjust = -0.7, size = 3) +
+  scale_x_continuous(breaks = seq(0, 1500, by = 100)) + 
+  scale_y_continuous(labels = scales::percent) +
+  facet_wrap(~v13_citizen_consumer)
+
+```
+- 市民選好の2回目については1回目yesとnoとで分布の形はあまり変わらない。しかし消費者選好については大きく変わる。消費者選好の方が選好が戦略的になっているとかだろうか？
+- 個人ごとの変化のパターンを追ったらどうか？
