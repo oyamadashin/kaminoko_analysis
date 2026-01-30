@@ -33,6 +33,9 @@ df <- read_csv("kaminoko2025_all.csv")
 df <- df |> 
   rename_with(~ gsub("^q12", "v12", .x)) 
 
+df <- df |> 
+  rename_with(~ gsub("^q14", "v14", .x)) 
+
 # 北海道内（外）と道内（外）が混じっていたので道内（外）に統一
 df <- df |> 
   mutate(
@@ -129,20 +132,71 @@ df |>
 
 
 ```
+
 ## WTP関連
 
 ```{r}
-df |> 
-  filter(!is.na(v14_bid1) & !is.na(v1_sex)) |> 
-  group_by(v14_bid1_wtp, v1_sex) |> 
+bid1_df <- df |> 
+  filter(!is.na(v14_bid1)) |> 
+  group_by(v14_bid1_wtp) |> 
   summarise(
     yes_rate = mean(v14_bid1 == "支払う"),
-    n = n()
-  ) |> 
-  ggplot(aes(x = v14_bid1_wtp, y = yes_rate)) +
-  geom_point(size = 2) +
-  geom_line() +
+    n = n(),
+    yes_n = round(n * yes_rate)
+  )
+
+
+
+df_plot <- tibble::tibble(
+  bid1 = 500,
+  stage = c("bid1", "bid2", "bid2"),
+  branch = c("all", "yes", "no"),   # ← ここが重要
+  bid = c(500, 1000, 300),
+  yes_rate = c(0.75, 0.60, 0.70),
+  n = c(51, 30, 21)
+)
+
+
+df_arrow <- df_plot |>
+  filter(stage == "bid2") |>
+  left_join(
+    df_plot |> filter(stage == "bid1"),
+    by = "bid1",
+    suffix = c("_to", "_from")
+  )
+
+
+ggplot() +
+  geom_segment(
+    data = df_arrow,
+    aes(
+      x = bid_from,
+      y = yes_rate_from,
+      xend = bid_to,
+      yend = yes_rate_to,
+      linetype = NULL
+    ),
+    arrow = arrow(length = unit(0.2, "cm")),
+    alpha = 0.7
+  ) +
+  geom_point(
+    data = df_plot,
+    aes(x = bid, y = yes_rate, size = n),
+    shape = 21, fill = "white"
+  ) +
   scale_y_continuous(labels = scales::percent) +
-  facet_wrap(~v1_sex)
+  scale_size_continuous(range = c(3, 8)) +
+  scale_linetype_manual(
+    values = c(yes = "solid", no = "dashed")
+  ) +
+  labs(
+    x = "提示額（円）",
+    y = "Yes率",
+    linetype = "初回回答",
+    size = "回答者数"
+  )
+
+
+
 ```
 
