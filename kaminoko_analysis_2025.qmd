@@ -421,7 +421,6 @@ df |>
 -   直売所があれば商品を見てみたい、という人が多い。
 -   道内の方が「イベントがあれば参加したい」という人が多い（が、「交流したくない」という人も多い）。
 
-
 ## v13-14（支払意思）
 
 ### 初回WTP
@@ -432,17 +431,20 @@ df |>
   group_by(v14_bid1_wtp) |> 
   summarise(
     yes_rate = mean(v14_bid1 == "支払う"),
-    n = n()
+    n = n(),
+    yes_n = round(n * yes_rate)
   ) |> 
   ggplot(aes(x = v14_bid1_wtp, y = yes_rate)) +
   geom_point(size = 2) +
   geom_line() +
-  geom_text(aes(label = paste0(n, "人")), vjust = -0.7, size = 3) +
+  geom_text(aes(label = paste0(yes_n, "/", n, "人")), vjust = -0.7, size = 3) +
   scale_x_continuous(breaks = seq(0, 1000, by = 100)) +
-  scale_y_continuous(labels = scales::percent) 
+  scale_y_continuous(labels = scales::percent) +
+  coord_cartesian(clip = "off") +
+  theme(plot.margin = margin(5.5, 20, 5.5, 5.5))
 ```
-300円より500円の方がなぜかyes率がわずかに高い。誤差の範囲だが、あまり価格差が意識されていない？
 
+300円より500円の方がなぜかyes率がわずかに高い。誤差の範囲だが、あまり価格差が意識されていない？
 
 ```{r}
 df |> 
@@ -450,17 +452,22 @@ df |>
   group_by(v14_bid1_wtp, v13_citizen_consumer) |> 
   summarise(
     yes_rate = mean(v14_bid1 == "支払う"),
-    n = n()
+    n = n(),
+    yes_n = round(n * yes_rate)
   ) |> 
   ggplot(aes(x = v14_bid1_wtp, y = yes_rate)) +
   geom_point(size = 2) +
   geom_line() +
   facet_wrap(~v13_citizen_consumer) +
-  scale_x_continuous(breaks = seq(0, 1000, by = 100)) +
+  scale_x_continuous(
+    breaks = seq(0, 1000, by = 100)) +
   scale_y_continuous(labels = scales::percent) +
-  geom_text(aes(label = paste0(n, "人")), vjust = -0.7, size = 3) 
+  geom_text(aes(label = paste0(yes_n, "/", n, "人")), vjust = -0.7,  size = 3) +
+  coord_cartesian(clip = "off") +
+  theme(plot.margin = margin(5.5, 20, 5.5, 5.5))
 
 ```
+
 消費者選好の方がやや分布が歪んでいる。
 
 ### 2回目WTP（前回yes）
@@ -471,17 +478,20 @@ df |>
   group_by(v14_bid2_yes_wtp) |> 
   summarise(
     yes_rate = mean(v14_bid2_yes == "支払う"),
-    n = n()
+    n = n(),
+    yes_n = round(n * yes_rate)
   ) |> 
   ggplot(aes(x = v14_bid2_yes_wtp, y = yes_rate)) +
   geom_point(size = 2) +
   geom_line() +
-  geom_text(aes(label = paste0(n, "人")), vjust = -0.7, size = 3) +
+  geom_text(aes(label = paste0(yes_n, "/", n, "人")), vjust = -0.7, size = 3) +
   scale_x_continuous(breaks = seq(0, 1500, by = 100)) + 
-  scale_y_continuous(labels = scales::percent) 
+  scale_y_continuous(labels = scales::percent) +
+  coord_cartesian(clip = "off") +
+  theme(plot.margin = margin(5.5, 20, 5.5, 5.5))
 ```
-1回目で「支払う」を選択した人の場合、2回目のwtpの回答分布に異常がみられない。
 
+1回目で「支払う」を選択した人の場合、2回目のwtpの回答分布に（一見）異常はみられない。
 
 ```{r}
 df |> 
@@ -489,16 +499,21 @@ df |>
   group_by(v14_bid2_yes_wtp, v13_citizen_consumer) |> 
   summarise(
     yes_rate = mean(v14_bid2_yes == "支払う"),
-    n = n()
+    n = n(),
+    yes_n = round(yes_rate * n)
   ) |> 
   ggplot(aes(x = v14_bid2_yes_wtp, y = yes_rate)) +
   geom_point(size = 2) +
   geom_line() +
-  geom_text(aes(label = paste0(n, "人")), vjust = -0.7, size = 3) +
+  geom_text(aes(label = paste0(yes_n, "/", n, "人")), vjust = -0.7, size = 3) +
   scale_x_continuous(breaks = seq(0, 1500, by = 100)) + 
   scale_y_continuous(labels = scales::percent) +
-  facet_wrap(~v13_citizen_consumer)
+  facet_wrap(~v13_citizen_consumer) +
+  coord_cartesian(clip = "off") +
+  theme(plot.margin = margin(5.5, 20, 5.5, 5.5))
 ```
+
+しかし、選好タイプを分けてみると分布に歪みが生じる。消費者選好の方は提示額が500円以上になるとyes率がほぼ横ばいになる。一方、市民選好の方は500円から1,000円への落差が激しい。他人のために払えるのはせいぜい500円、という閾値があるのだろうか。
 
 ### 2回目WTP（前回no）
 
@@ -508,20 +523,23 @@ df |>
   group_by(v14_bid2_no_wtp) |> 
   summarise(
     yes_rate = mean(v14_bid2_no == "支払う"),
-    n = n()
+    n = n(),
+    yes_n = round(yes_rate * n)
   ) |> 
   ggplot(aes(x = v14_bid2_no_wtp, y = yes_rate)) +
   geom_point( size = 2) +
   geom_line() +
-  geom_text(aes(label = paste0(n, "人")), vjust = -0.7, size = 3) +
+  geom_text(aes(label = paste0(yes_n, "/", n, "人")), vjust = -0.7, size = 3) +
   scale_x_continuous(breaks = seq(0, 1500, by = 100)) + 
-  scale_y_continuous(labels = scales::percent) 
+  scale_y_continuous(labels = scales::percent)  +
+  coord_cartesian(clip = "off") +
+  theme(plot.margin = margin(5.5, 20, 5.5, 5.5))
 
 ```
-- 第1回目で「支払わない」と回答した人は、サンプル数が比較的少ないせいもあるかもしれないが、分布がかなりおかしい。
-- 「2回とも支払わないを選択したらケチだと思われそうだから、バランスをとって今回は支払うを選択しよう」のような心理がはたらき、分布が歪んでしまったのだろうか。
-- 「50円払うくらいならいっそ0円にしてほしい」と考え、「支払わない」を選択した人が多いのではないか。また、500円の人に対する1回目の提示額は1000円だ。1000円から500円だと減少幅が大きいので「支払う」が多くなっているのかもしれない（1回目と2回目の提示額パターンは次の通り：1000円→500円、500円→300円、300円→100円、100円→50円）。
 
+-   第1回目で「支払わない」と回答した人は、サンプル数が比較的少ないせいもあるかもしれないが、分布がかなりおかしい。
+-   「2回とも支払わないを選択したらケチだと思われそうだから、バランスをとって今回は支払うを選択しよう」のような心理がはたらき、分布が歪んでしまったのだろうか。
+-   「50円払うくらいならいっそ0円にしてほしい」と考え、「支払わない」を選択した人が多いのではないか。また、500円の人に対する1回目の提示額は1000円だ。1000円から500円だと減少幅が大きいので「支払う」が多くなっているのかもしれない（1回目と2回目の提示額パターンは次の通り：1000円→500円、500円→300円、300円→100円、100円→50円）。
 
 ```{r}
 df |> 
@@ -529,16 +547,21 @@ df |>
   group_by(v14_bid2_no_wtp, v13_citizen_consumer) |> 
   summarise(
     yes_rate = mean(v14_bid2_no == "支払う"),
-    n = n()
+    n = n(),
+    yes_n = round(yes_rate * n)
   ) |> 
   ggplot(aes(x = v14_bid2_no_wtp, y = yes_rate)) +
   geom_point( size = 2) +
   geom_line() +
-  geom_text(aes(label = paste0(n, "人")), vjust = -0.7, size = 3) +
+  geom_text(aes(label = paste0(yes_n, "/", n, "人")), vjust = -0.7, size = 3) +
   scale_x_continuous(breaks = seq(0, 1500, by = 100)) + 
   scale_y_continuous(labels = scales::percent) +
-  facet_wrap(~v13_citizen_consumer)
+  facet_wrap(~v13_citizen_consumer)  +
+  coord_cartesian(clip = "off") +
+  theme(plot.margin = margin(5.5, 20, 5.5, 5.5))
 
 ```
-- 市民選好の2回目については1回目yesとnoとで分布の形はあまり変わらない。しかし消費者選好については大きく変わる。消費者選好の方が選好が戦略的になっているとかだろうか？
-- 個人ごとの変化のパターンを追ったらどうか？
+
+-   市民選好の2回目については1回目yesとnoとで分布の形はあまり変わらない。しかし消費者選好については大きく変わる。消費者選好の方が選好が戦略的になっているとかだろうか？
+-   ただ、この辺りになってくるとカテゴリーあたりの回答者数が30人以下でかなり少なく、あまりデータとして当てにならない。
+-   個人ごとの変化のパターンを追ったらどうか？
