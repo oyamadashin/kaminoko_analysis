@@ -229,6 +229,8 @@ df |>
     tv = sum(v7_tv, na.rm = TRUE),
     travel_agency = sum(v7_travel_agency, na.rm = TRUE),
     magazine = sum(v7_magazine, na.rm = TRUE),
+    companion_suggestion = sum(v7_companion_suggestion, na.rm = TRUE),
+    non_companion_info = sum(v7_non_companion_info, na.rm = TRUE),
     .groups = "drop"
   ) |> 
   pivot_longer(
@@ -244,7 +246,7 @@ df |>
 
 ```
 
-道外居住者はネットの口コミや雑誌がきっかけで来た人が多い。一方、道内居住者は清里町・観光協会のサイトを見た来た人がそこそこ多い。
+道外居住者はネットの口コミ、同行者の提案、雑誌がきっかけで来た人が多い。一方、道内居住者は同行者の提案、ネットの口コミが多い。
 
 ```{r}
 choices <- c("v7_web","v7_other_web","v7_web_reviews","v7_tv","v7_travel_agency","v7_magazine")
