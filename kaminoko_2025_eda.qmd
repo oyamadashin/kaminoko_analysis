@@ -169,7 +169,7 @@ df |>
   facet_grid(date~v7_companion_suggestion)
 ```
 
-あれ？以外と10代、70代以上は同行者の提案という人が少ない　→　彼らは何がきっかけで来たの？　→　ただ、これでも他のきっかけに比べると数は多い（そもそもこれらの年代は該当者が少ない）
+あれ？意外と10代、70代以上は同行者の提案という人が少ない　→　彼らは何がきっかけで来たの？　→　ただ、これでも他のきっかけに比べると数は多い（そもそもこれらの年代は該当者が少ない）
 
 20代は同行者の提案で来る人が非常に多い。
 
@@ -250,6 +250,116 @@ df |>
 →　グループ旅行をする場合、グループの誰かが行先を提案して、他の人はそれについていくだけ、というパターンが多いだろう（いちいちみんなで相談して決めるということはあまりしない）。20代はまだ独身で10代よりも自由に行動できる傾向があるため、グループ旅行をする傾向が高いのではないか。だから、20代で「同行者の提案」がきっかけの人が多くなるのだろう。
 
 また、1人旅だと非同行者の話がきっかけという人が少ないのは、彼らが能動的に情報を集める傾向があるからではないか。
+
+## 期待度関連
+
+-   神の子池に来るまでのコストが高い人の方が、その分、神の子池に対する期待度が高いのではないだろうか。そうでなければそもそもコストを支払おうとしないだろう。
+
+    -   これを検証するには？
+
+    -   コストに該当するのは居住地「道内・道外」か、だろう。道外の人の方がコストが高い。また、「同行者の提案がきっかけ」という人は受身なのでコストが低いという見方もできる。どちらもダミー変数だな。
+
+    -   だから単純に、ダミー変数の0, 1それぞれでファセットして期待度分布の違いをみる、というのでいいと思う。あるいはcolorでグループ分けするのもOK。
+
+### 居住地×景色期待度
+
+```{r}
+# 居住地×景色期待度で棒グラフ
+df |> 
+  filter(!is.na(v8_scenery_expectation) & !is.na(v3_hokkaido)) |> 
+  group_by(v3_hokkaido) |> 
+  ggplot(aes(x = v8_scenery_expectation)) +
+  geom_bar() +
+  facet_wrap(~v3_hokkaido)
+  
+```
+
+-   あれ？　道内の方が期待度高めかな。平均とかもみないとよくわからないな。
+
+```{r}
+# 居住地×景色期待度で箱ひげ図＋バイオリンプロット
+df |> 
+  filter(!is.na(v8_scenery_expectation) & !is.na(v3_hokkaido)) |> 
+  ggplot(aes(x = v3_hokkaido, y = v8_scenery_expectation)) +
+  geom_violin(trim = FALSE) +
+  geom_boxplot(width = 0.15, outlier.shape = NA)
+```
+
+-   期待度の中央値は同じ。高得点の方の分布はほとんど変わらない。
+
+-   一方、道内の方が尾が長い。つまり、期待度の低い人たちが少し見られるということだ。
+
+    -   **彼らはどういう人たちだろう？　同行者に連れてこられた人たち？　再訪経験があってあまり期待をせずに来た人たち？**
+
+### 居住地×総合期待度
+
+```{r}
+# 居住地×総合期待度で棒グラフ
+
+df |> 
+  filter(!is.na(v8_general_expectation) & !is.na(v3_hokkaido)) |> 
+  group_by(v3_hokkaido) |> 
+  ggplot(aes(x = v8_general_expectation)) +
+  geom_bar() +
+  facet_wrap(~v3_hokkaido)
+```
+
+```{r}
+df |> 
+  filter(!is.na(v8_general_expectation) & !is.na(v3_hokkaido)) |> 
+  ggplot(aes(x = v3_hokkaido, y = v8_general_expectation)) +
+  geom_violin(trim = FALSE) +
+  geom_boxplot(width = 0.15, outlier.shape = NA)
+```
+
+-   総合期待度も似たような傾向かなあ。
+
+### 同行者の提案×景色期待度
+
+```{r}
+# 同行者の提案×景色期待度で棒グラフ
+df |> 
+  filter(!is.na(v8_scenery_expectation) & !is.na(v7_companion_suggestion)) |> 
+  group_by(v7_companion_suggestion) |> 
+  ggplot(aes(x = v8_scenery_expectation)) +
+  geom_bar() +
+  facet_wrap(~v7_companion_suggestion)
+```
+
+```{r}
+# 同行者の提案×景色期待度で箱ひげ図＋バイオリンプロット
+df |> 
+  filter(!is.na(v8_scenery_expectation) & !is.na(v7_companion_suggestion)) |> 
+  ggplot(aes(x = as.factor(v7_companion_suggestion), y = v8_scenery_expectation)) +
+  geom_violin(trim = FALSE) +
+  geom_boxplot(width = 0.15, outlier.shape = NA)
+```
+
+-   同行者の提案で来た人たちの方が期待度がばらける感じ。同行者に提案されて「楽しみ！」という人もいれば「ええー。面倒だけど仕方ないなあ」という人もいる、ということか。
+
+```{r}
+df |> 
+  filter(!is.na(v8_scenery_expectation) & !is.na(v7_companion_suggestion) & !is.na(v3_hokkaido)) |> 
+  ggplot(aes(x = as.factor(v7_companion_suggestion), y = v8_scenery_expectation)) +
+  geom_violin(trim = FALSE) +
+  geom_boxplot(width = 0.15, outlier.shape = NA) +
+  facet_wrap(~v3_hokkaido)
+```
+
+```{r}
+df |> 
+  filter(!is.na(v8_scenery_expectation) & !is.na(v7_companion_suggestion) & !is.na(v3_hokkaido)) |> 
+  ggplot(aes(x = v3_hokkaido, y = v8_scenery_expectation)) +
+  geom_violin(trim = FALSE) +
+  geom_boxplot(width = 0.15, outlier.shape = NA) +
+  facet_wrap(~as.factor(v7_companion_suggestion))
+```
+
+-   どうも、「道内か道外か」も「同行者の提案がきっかけかそうでないか」も、どちらも期待度の尾の伸びに影響している感じだ。で、道内の、同行者の提案がきっかけの人たちが一番尾の伸びが大きい。逆に、道外の、同行者の提案以外がきっかけの人たちは、尾の伸びが一番小さい。
+
+-   やっぱりコストの問題かな。道内で、かつ同行者の提案がきっかけというのは、「まあ、別に興味無いけど、そんなに言うなら行ってみようかな」くらいの軽い気持ちで来ている可能性がある。それに対し、道外で、かつ同行者の提案以外がきっかけの人たちは、「よし、行こう！」とそれなりに踏ん切りをつけないと行こうと思わない。そういう踏ん切りをつけるためには、神の子池に対してそれなりに高い期待を持っていなければならないのだ。
+
+-   （総合期待度についても同様に分析しておこう）
 
 ## WTP関連
 
