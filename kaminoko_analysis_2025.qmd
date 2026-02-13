@@ -18,27 +18,153 @@ library(tidyverse)
 library(patchwork)
 ```
 
-## データインポート
+## データインポートと結合
+
 
 ```{r}
-#| include: false
+library(janitor) # 変数名をきれいにするためのパッケージ
 
-df <- read_csv("kaminoko2025_all.csv")
+# 結合前データ読み込み
+df1 <- read_csv("kaminoko2025_0608.csv") 
+df2 <- read_csv("kaminoko2025_0614-15.csv")
+df3 <- read_csv("kaminoko2025_0719-20.csv")
+
+
+# 変数名つけなおし（結合する変数のみ）
+df1 <- df1 |> clean_names() # rename()時にエラーが出ないよう変数名をきれいにしておく
+
+df1 <- df1 |> rename(
+  date = diao_zha_ri,
+  v1_sex = q1_xing_bie,
+  v2_gen = q2_nian_ling,
+  v3_hokkaido = q3_o_zhumai,
+  v3_hokkaido_resi = q3_1_shi_ting_cun_ming_bei_hai_dao_nei,
+  v3_not_hokkaido_resi = q3_2_dou_dao_fu_xian_ming_bei_hai_dao_wai ,
+  v4_hokkaido_visits = q4_koremadeno_bei_hai_daoheno_lu_xing_fang_wen_chu_zhangmo_hanmete,
+  v5_companions_cnt = q5_tong_xing_zheno_ren_shu_anata_zi_shenwo_hanmeta_ren_shu,
+  v6_kaminoko_visits = q6_shenno_zi_chiheno_fang_wen,
+  v7 = q7_shenno_zi_chiwo_fang_wenshitakikkake, # ここはあとでダミー変数に分解する
+  v8_scenery_expectation = q8_1_shenno_zi_chiheno_qi_dai_du_jing_seno_meishisaya_zi_ran_nitsuite,
+  v8_general_expectation = q8_2_shenno_zi_chiheno_qi_dai_du_guan_guang_detoshiteno_shenno_zi_chiheno_zong_he_de_man_zu_du_nitsuite,
+  v9_scenery_satisfaction =  q9_1_shenno_zi_chiheno_man_zu_du_jing_seno_meishisaya_zi_ran_ti_yan_nitsuite,
+  v9_access_satisfaction = q9_2_shenno_zi_chiheno_man_zu_du_chimadenoakusesu_nitsuite,
+  v9_facility_satisfaction = q9_3_shenno_zi_chiheno_man_zu_du_toire_zhu_che_changnadono_she_bei_nitsuite,
+  v9_tourist_spot_satisfaction = q9_4_shenno_zi_chiheno_man_zu_du_zhou_bianno_guan_guangsupottono_chong_shi_du_nitsuite,
+  v9_general_satisfaction = q9_5_shenno_zi_chiheno_man_zu_du_shenno_zi_chini_duisuru_zong_he_dena_man_zu_du_nitsuite,
+  v11_revisit_intention = q10_shenno_zi_chiwomata_fang_wenshitaito_siimasuka,
+  v12 = q11_qing_li_tingno_ren_to_jiao_liushitaito_siimasuka, # ここはあとでダミー変数に分解する
+  v13_citizen_consumer = q12_2_zhi_wennotaipu_shuinitotteno_si_zhiwo_weniteiruka,
+  v14_bid1_wtp = q12_1_shenno_zi_chi_no_guan_guang_zi_yuantoshiteno_si_zhiwo_ping_sisurutameno_zhi_wen_ti_shi_e, # あとでここからv14_bid2_yes_wtpとv14_bid2_no_wtpをつくる
+  v14_bid1 = q13_1_di1hui_zhi_fani_yi_si,
+  v14_bid2_yes = q13_2_di2hui_zhi_fani_yi_si_di1hui_zhi_fanu,
+  v14_bid2_no = q13_3_di2hui_zhi_fani_yi_si_di1hui_zhi_fanwanai,
+  v14_reason = q13_4_zhi_fanitakunai_li_you # あとでダミー変数に分解
+)
+
+
+df2 <- df2 |> clean_names() # rename()時にエラーが出ないよう変数名をきれいにしておく
+
+df2 <- df2 |> rename(
+  date = diao_zha_ri,
+  v1_sex = q1_xing_bie,
+  v2_gen = q2_nian_ling,
+  v3_hokkaido = q3_o_zhumai,
+  v3_hokkaido_resi = q3_1_shi_ting_cun_ming_bei_hai_dao_nei,
+  v3_not_hokkaido_resi = q3_2_dou_dao_fu_xian_ming_bei_hai_dao_wai,
+  v4_hokkaido_visits = q4_koremadeno_bei_hai_daoheno_lu_xing_fang_wen_chu_zhangmo_hanmete,
+  v5_companions_cnt = q5_tong_xing_zheno_ren_shu_anata_zi_shenwo_hanmeta_ren_shu,
+  v6_kaminoko_visits = q6_shenno_zi_chiheno_fang_wen,
+  v7 = q7_shenno_zi_chiwo_fang_wenshitakikkake, # ここはあとでダミー変数に分解する
+  v8_scenery_expectation = q8_1_shenno_zi_chiheno_qi_dai_du_jing_seno_meishisaya_zi_ran_nitsuite,
+  v8_general_expectation = q8_2_shenno_zi_chiheno_qi_dai_du_guan_guang_detoshiteno_shenno_zi_chiheno_zong_he_de_man_zu_du_nitsuite,
+  v9_scenery_satisfaction =  q9_1_shenno_zi_chiheno_man_zu_du_jing_seno_meishisaya_zi_ran_ti_yan_nitsuite,
+  v9_access_satisfaction = q9_2_shenno_zi_chiheno_man_zu_du_chimadenoakusesu_nitsuite,
+  v9_facility_satisfaction = q9_3_shenno_zi_chiheno_man_zu_du_toire_zhu_che_changnadono_she_bei_nitsuite,
+  v9_tourist_spot_satisfaction = q9_4_shenno_zi_chiheno_man_zu_du_zhou_bianno_guan_guangsupottono_chong_shi_du_nitsuite,
+  v9_general_satisfaction = q9_5_shenno_zi_chiheno_man_zu_du_shenno_zi_chini_duisuru_zong_he_dena_man_zu_du_nitsuite,
+  v11_revisit_intention = q10_shenno_zi_chiwomata_fang_wenshitaito_siimasuka,
+  v12 = q11_qing_li_tingno_ren_to_jiao_liushitaito_siimasuka, # ここはあとでダミー変数に分解する
+  v13_citizen_consumer = q12_2_zhi_wennotaipu_shuinitotteno_si_zhiwo_weniteiruka,
+  v14_bid1_wtp = q12_1_shenno_zi_chi_no_guan_guang_zi_yuantoshiteno_si_zhiwo_ping_sisurutameno_zhi_wen_ti_shi_e, # あとでここからv14_bid2_yes_wtpとv14_bid2_no_wtpをつくる
+  v14_bid1 = q13_1_di1hui_zhi_fani_yi_si,
+  v14_bid2_yes = q13_2_di2hui_zhi_fani_yi_si_di1hui_zhi_fanu,
+  v14_bid2_no = q13_3_di2hui_zhi_fani_yi_si_di1hui_zhi_fanwanai,
+  v14_reason = q13_4_zhi_fanitakunai_li_you # あとでダミー変数に分解
+)
+
+
+df3 <- df3 |> clean_names() # rename()時にエラーが出ないよう変数名をきれいにしておく
+
+df3 <- df3 |> rename(
+  date = diao_zha_ri,
+  v1_sex = q1_xing_bie,
+  v2_gen = q2_nian_ling,
+  v3_hokkaido = q3_o_zhumai,
+  v3_hokkaido_resi = q3_1_shi_ting_cun_ming_bei_hai_dao_nei,
+  v3_not_hokkaido_resi = q3_2_dou_dao_fu_xian_ming_bei_hai_dao_wai,
+  v4_hokkaido_visits = q4_koremadeno_bei_hai_daoheno_lu_xing_fang_wen_chu_zhangmo_hanmete,
+  v5_companions_cnt = q5_tong_xing_zheno_ren_shu_anata_zi_shenwo_hanmeta_ren_shu,
+  v6_kaminoko_visits = q6_shenno_zi_chiheno_fang_wen,
+  v9_scenery_satisfaction = q8_1_shenno_zi_chiheno_man_zu_du_jing_seno_meishisaya_zi_ran_ti_yan_nitsuite,
+  v9_access_satisfaction = q8_2_shenno_zi_chiheno_man_zu_du_chimadenoakusesu_nitsuite,
+  v9_facility_satisfaction = q8_3_shenno_zi_chiheno_man_zu_du_toire_zhu_che_changnadono_she_bei_nitsuite,
+  v9_tourist_spot_satisfaction = q8_4_shenno_zi_chiheno_man_zu_du_zhou_bianno_guan_guangsupottono_chong_shi_du_nitsuite,
+  v9_general_satisfaction = q8_5_shenno_zi_chiheno_man_zu_du_shenno_zi_chini_duisuru_zong_he_dena_man_zu_du_nitsuite,
+  v10_kaminoko_scenery_satis = q9_1_ge_yao_suno_man_zu_du_chi_zi_tino_meishisa_nitsuite,
+  v10_kaminoko_silence_satis = q9_2_ge_yao_suno_man_zu_du_jingkesa_nitsuite,
+  v10_kaminoko_forest_satis = q9_3_ge_yao_suno_man_zu_du_senno_likasa_nitsuite,
+  v10_kaminoko_achievement_satis = q9_4_ge_yao_suno_man_zu_du_tadori_zheita_da_cheng_gan_nitsuite,
+  v13_citizen_consumer = q7_zhi_wennotaipu_shuinitotteno_si_zhiwo_weniteiruka,
+  v14_bid1_wtp = q7_chu_hui_ti_shi_e, # あとでここからv14_bid2_yes_wtpとv14_bid2_no_wtpをつくる
+  v14_bid1 = q7_1_di1hui_zhi_fani_yi_si,
+  v14_bid2_yes = q7_2_di2hui_zhi_fani_yi_si_di1hui_zhi_fanu,
+  v14_bid2_no = q7_3_di2hui_zhi_fani_yi_si_di1hui_zhi_fanwanai,
+  v14_reason = q7_4_zhi_fanitakunai_li_you # あとでダミー変数に分解
+)
+
+# 結合前にすべて文字列型に変換（型が同じでないと結合できない→満足度などはあとで数値型に直す）
+df1 <- df1 |> mutate(across(everything(), as.character))
+df2 <- df2 |> mutate(across(everything(), as.character))
+df3 <- df3 |> mutate(across(everything(), as.character))
+
+df <- bind_rows(df1, df2, df3)
+```
+
+
+```{r}
+# 臨時作業場。あとで削除
+df$v5_companions_cnt |> table()
+
 
 
 ```
 
-## 変数名変更or再コーディング
+
+## 再コーディング
 
 ```{r}
-# 変数名を間違って入力していたので修正。
-df <- df |> 
-  rename_with(~ gsub("^q12", "v12", .x)) 
 
-df <- df |> 
-  rename_with(~ gsub("^q14", "v14", .x)) 
+# 欠損をすべてNAに置換
+library(stringr) # str_trim()を使うために読み込む
+df <- df |>
+  mutate(
+    across(
+      everything(),
+      ~ {
+        x <- str_trim(.) # 文字列前後の空白を削除
+        ifelse(x %in% c("未回答", "【未回答】", "不明", "NA", "", "その他（未回答）", "【未回答】;", "未回答;"), NA, x)
+      }
+    )
+  )
 
-# 北海道内（外）と道内（外）が混じっていたので道内（外）に統一
+# date 日付をファクタ化してレベル設定
+df <- df |> 
+  mutate(
+    date = factor(date, levels = c("6月8日", "6月14-15日", "7月19-20日"))
+  ) 
+
+
+# v3 北海道内（外）と道内（外）が混じっていたので道内（外）に統一
 df <- df |> 
   mutate(
     v3_hokkaido = case_when(
@@ -48,13 +174,60 @@ df <- df |>
     )
   ) 
 
-# 日付をファクタ化してレベル設定
+# v4 値がばらばらなので揃える（最大4回目以上）
+df <- df |>
+  mutate(
+    v4_hokkaido_visits = if_else(
+      v4_hokkaido_visits %in% c("10回", "１０回", "10回以上", "10回位", "10数回", "13回目くらい", "15年行き来している", "４回", "4回目", "5回目", "6", "6回", "6回目", "６回目", "7回目", "たくさん", "多数回", "沢山"),
+      "4回目以上",
+      v4_hokkaido_visits
+    )
+  )
+
 df <- df |> 
   mutate(
-    date = factor(date, levels = c("6月8日", "6月14-15日", "7月19-20日"))
-  ) 
+    v4_hokkaido_visits = if_else(
+      v4_hokkaido_visits %in% c("なし", "在住", "実家が札幌", "数日程度", "道産子"),
+      NA_character_,
+      v4_hokkaido_visits
+    )
+  )
 
-# 1,2のままだと使いにくいので、カテゴリー名をかえる。
+df <- df |> 
+  mutate(
+    v4_hokkaido_visits = if_else(
+      v4_hokkaido_visits %in% c("3～5回", "3") ,  # 3～5回は低めに見積もって3回とする
+      "3回目",
+      v4_hokkaido_visits
+    )
+  )
+
+
+# v5 「1人（同行者はいない）」が冗長なので「1人」に変換。また、最大5人以上に統一しよう
+df <- df |> 
+  mutate(
+    v5_companions_cnt = case_when(
+      v5_companions_cnt == "1人（同行者はいない）" ~ "1人",
+      TRUE ~ v5_companions_cnt
+    )
+  )
+
+# TODO 5人以上に統一
+
+
+# v6 神の子訪問回数が3回目以上ならすべて「3回目以上」に統一
+df <- df |>
+  mutate(
+    v6_kaminoko_visits = if_else(
+      v6_kaminoko_visits %in% c("3回目", "4回以上", "4回目以上", "５回", "何十回も"),
+      "3回目以上",
+      v6_kaminoko_visits
+    )
+  )
+
+
+
+# v13 1,2のままだと使いにくいので、カテゴリー名をかえる。
 df <- df |> 
   mutate(
     v13_citizen_consumer = case_when(
@@ -63,6 +236,35 @@ df <- df |>
       TRUE ~ NA_character_
     )
   )
+
+# v14 CVM質問についてyy, yn, ny, nnのパターンを表す変数をつくる
+df <- df |> 
+  mutate(
+    yes_no_pattern = case_when(
+      v14_bid1 == "支払う" & v14_bid2_yes == "支払う"  & is.na(v14_bid2_no) ~ "yy",
+      v14_bid1 == "支払う" & v14_bid2_yes == "支払わない" ~ "yn",
+      v14_bid1 == "支払わない" & v14_bid2_no == "支払う" ~ "ny",
+      v14_bid1 == "支払わない" & v14_bid2_no == "支払わない" ~ "nn",
+      TRUE ~ NA_character_
+    )
+  )
+
+```
+
+```{r}
+# 整合性チェック
+table(df$v14_bid1,
+      is.na(df$v14_bid2_yes),
+      is.na(df$v14_bid2_no))
+
+```
+
+```{r}
+# CVMの分岐質問であり得ない回答パターンをしているサンプルを抽出
+df |> 
+  filter(v14_bid1 == "支払う" & is.na(v14_bid2_yes) & !is.na(v14_bid2_no)) |> 
+  select(id, questionnaire_no, date) # id428
+
 ```
 
 # 単純集計
@@ -103,7 +305,7 @@ df |>
   geom_bar()
 ```
 
-50代が多く、30代と70代、10代は少ない。
+\[1\] 20代と50代が多く、30代と70代、10代は少ない。
 
 ```{r}
 df |> 
@@ -112,7 +314,7 @@ df |>
   facet_wrap(~date)
 ```
 
-7月の方が50代が多い。6月は10代がかなり少ない（まだ夏休み前だとは思うが）。
+\[2\] 7月の方が50代が多い。6月は10代がかなり少ない（まだ夏休み前だとは思うが）。
 
 ## v3(居住地)
 
@@ -122,7 +324,7 @@ df |>
   geom_bar()
 ```
 
-道内・道外はほぼ同数。
+\[3\] 道内・道外はほぼ同数。
 
 ```{r}
 df |> 
@@ -131,7 +333,7 @@ df |>
   facet_wrap(~date)
 ```
 
-7月の方が道外がやや多い（夏休みだからか）
+\[4\] 7月の方が道外がやや多い（夏休みだからか→7月は三連休だから）
 
 ## v4(北海道訪問回数)
 
@@ -143,7 +345,7 @@ df |>
 
 ```
 
-4回以上が多数派。
+\[5\] 北海道訪問は4回以上が多数派。
 
 ```{r}
 df |> 
@@ -164,7 +366,7 @@ df |>
   geom_bar() 
 ```
 
-2人連れ（自分含めて2人）という人が多い。
+\[6\] 同行者人数は2人連れ（自分含めて2人）という人が多い。
 
 ```{r}
 df |> 
@@ -173,7 +375,7 @@ df |>
   facet_wrap(~date)
 ```
 
-7月は3人連れ、4人連れもそこそこ多くなっている。
+\[7\] 7月は3人連れ、4人連れもそこそこ多くなっている。
 
 ## v6(神の子池訪問回数)
 
@@ -183,7 +385,7 @@ df |>
   geom_bar() 
 ```
 
-初めて神の子池を訪れたという人が多い。リピーターは少なめ。
+\[8\] 初めて神の子池を訪れたという人が多い。リピーターは少なめ。
 
 ```{r}
 df |> 
@@ -202,7 +404,7 @@ df |>
   facet_wrap(~v3_hokkaido)
 ```
 
-道外の人の方が初めて神の子池を訪れたという人が多い（当たり前か）
+\[9\] 道外の人の方が初めて神の子池を訪れたという人が多い
 
 ```{r}
 df |> 
@@ -246,7 +448,9 @@ df |>
 
 ```
 
-道外居住者はネットの口コミ、同行者の提案、雑誌がきっかけで来た人が多い。一方、道内居住者は同行者の提案、ネットの口コミが多い。
+\[10\] 道外居住者はネットの口コミ、同行者の提案、雑誌がきっかけで来た人が多い。
+
+\[11\] 道内居住者は同行者の提案、ネットの口コミが多い。
 
 ```{r}
 choices <- c("v7_web","v7_other_web","v7_web_reviews","v7_tv","v7_travel_agency","v7_magazine")
@@ -284,7 +488,7 @@ p2 <- df |>
 p1 + p2
 ```
 
-期待度の中央値は8。景色の期待度でも総合的期待度でも傾向は変わらない。 まあ、そもそも期待してなければ来ないはずなので、期待度が高くなるのは当然か。
+\[12\] 神の子池期待度の中央値は8。景色の期待度でも総合的期待度でも傾向は変わらない。 まあ、そもそも期待してなければ来ないはずなので、期待度が高くなるのは当然か。
 
 ## v9(神の子池への満足度)
 
@@ -318,8 +522,7 @@ p1 + p2 + p3 + p4 + p5
 
 ```
 
--   道内・道外居住者で満足度傾向にあまり差は見られない。
--   アクセス、設備、周辺観光スポットの満足度は全体的に低い傾向。
+\[13\] 道内・道外居住者で神の子池の満足度傾向にあまり差は見られない。 \[14\] アクセス、設備、周辺観光スポットの満足度は全体的に低い傾向。
 
 ## v10(神の子池のどの側面に満足しているか)
 
@@ -348,8 +551,7 @@ p4 <- df |>
 p1 + p2 + p3 + p4
 ```
 
--   道外居住者は美しさを評価するが、道内居住者は美しさ以外の側面も評価する傾向（道外の人たちはweb口コミや）。
--   また、道外居住者の方が分布がやや広め。
+\[15\] 道外居住者は神の子池も美しさを評価するが、道内居住者は美しさ以外の側面も評価する傾向がやや強い。
 
 ## v11(再訪意思)
 
@@ -372,7 +574,7 @@ df |>
 
 ```
 
-「近くに来る機会があったら再訪したい」が多数。
+\[16\] 「近くに来る機会があったら再訪したい」が多数。
 
 ```{r}
 df |> 
@@ -420,8 +622,7 @@ df |>
   facet_wrap(~v3_hokkaido)
 ```
 
--   直売所があれば商品を見てみたい、という人が多い。
--   道内の方が「イベントがあれば参加したい」という人が多い（が、「交流したくない」という人も多い）。
+\[17\] 直売所があれば商品を見てみたい、という人が多い。 \[18\] 道内の方が「イベントがあれば参加したい」という人が多いが「交流したくない」という人も多い。
 
 ## v13-14（支払意思）
 
@@ -446,7 +647,7 @@ df |>
   theme(plot.margin = margin(5.5, 20, 5.5, 5.5))
 ```
 
-300円より500円の方がなぜかyes率がわずかに高い。誤差の範囲だが、あまり価格差が意識されていない？
+\[19\] 入域料は300円より500円の方がなぜかyes率がわずかに高い。 誤差の範囲だが、あまり価格差が意識されていない？
 
 ```{r}
 df |> 
@@ -470,7 +671,7 @@ df |>
 
 ```
 
-消費者選好の方がやや分布が歪んでいる。
+\[20\] yes率分布は消費者選好の方がやや歪んでいる。
 
 ### 2回目WTP（前回yes）
 
@@ -517,6 +718,8 @@ df |>
 
 しかし、選好タイプを分けてみると分布に歪みが生じる。消費者選好の方は提示額が500円以上になるとyes率がほぼ横ばいになる。一方、市民選好の方は500円から1,000円への落差が激しい。他人のために払えるのはせいぜい500円、という閾値があるのだろうか。
 
+\[21\] bid2_yes_wtpは、市民選好だと500円から1000円へのyes率落差が激しい。 \[22\] bid2_yes_wtpは、消費者選好は300円から500円へのyes率落差が激しい。
+
 ### 2回目WTP（前回no）
 
 ```{r}
@@ -542,6 +745,8 @@ df |>
 -   第1回目で「支払わない」と回答した人は、サンプル数が比較的少ないせいもあるかもしれないが、分布がかなりおかしい。
 -   「2回とも支払わないを選択したらケチだと思われそうだから、バランスをとって今回は支払うを選択しよう」のような心理がはたらき、分布が歪んでしまったのだろうか。
 -   「50円払うくらいならいっそ0円にしてほしい」と考え、「支払わない」を選択した人が多いのではないか。また、500円の人に対する1回目の提示額は1000円だ。1000円から500円だと減少幅が大きいので「支払う」が多くなっているのかもしれない（1回目と2回目の提示額パターンは次の通り：1000円→500円、500円→300円、300円→100円、100円→50円）。
+
+\[23\] bid2_no_wtpは50円のyes率が100円のときより低い。 \[24\] bid2_no_wtpは分布がかなり歪んでいる。
 
 ```{r}
 df |> 
