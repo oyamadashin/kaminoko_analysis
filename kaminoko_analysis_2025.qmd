@@ -19,8 +19,6 @@ library(patchwork)
 ```
 
 ## データインポートと結合
-
-
 ```{r}
 library(janitor) # 変数名をきれいにするためのパッケージ
 
@@ -133,10 +131,24 @@ df <- bind_rows(df1, df2, df3)
 
 ```{r}
 # 臨時作業場。あとで削除
-df$v5_companions_cnt |> table()
+df |> 
+  separate_rows(v7, sep = ";") |> 
+  mutate(v7 = trimws(v7)) |> 
+  filter(!is.na(v7), v7 != "") |> 
+  mutate(dummy = 1) |> 
+  pivot_wider(
+    id_cols = id,
+    names_from = v7,
+    values_from = dummy,
+    values_fill = 0
+  )
 
 
-
+df |> 
+  count(v7, sort = TRUE) |> 
+  write.csv("v7_table.csv",
+            row.names = FALSE,
+            fileEncoding = "UTF-8")
 ```
 
 
@@ -156,6 +168,18 @@ df <- df |>
       }
     )
   )
+
+# idとアンケート番号が違うので修正。アンケート番号はこうする
+df <- df |> 
+  rename(questionnaire_no = id)
+
+# 現在のデータの行番号でidを作っておく
+df <- df |> 
+  mutate(
+    id = row_number()
+  ) |> 
+  relocate(id)  # idを先頭列に移動
+
 
 # date 日付をファクタ化してレベル設定
 df <- df |> 
@@ -212,7 +236,15 @@ df <- df |>
     )
   )
 
-# TODO 5人以上に統一
+# 5人以上に統一
+df <- df |>
+  mutate(
+    v5_companions_cnt = if_else(
+      v5_companions_cnt %in% c("5人", "6", "7人", "７人"),
+      "5人以上",
+      v5_companions_cnt
+    )
+  )
 
 
 # v6 神の子訪問回数が3回目以上ならすべて「3回目以上」に統一
@@ -225,14 +257,17 @@ df <- df |>
     )
   )
 
+# v7をダミー変数化
+df |> 
+  separate_rows(v7, sep = ";") |> 
 
 
 # v13 1,2のままだと使いにくいので、カテゴリー名をかえる。
 df <- df |> 
   mutate(
     v13_citizen_consumer = case_when(
-      v13_citizen_consumer == 1 ~ "市民選好",
-      v13_citizen_consumer == 2 ~ "消費者選好",
+      v13_citizen_consumer == "あなた+他の訪問者+町の住民にとっての価値" ~ "市民選好",
+      v13_citizen_consumer == "あなたにとっての価値" ~ "消費者選好",
       TRUE ~ NA_character_
     )
   )
