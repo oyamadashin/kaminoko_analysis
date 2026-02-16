@@ -1,308 +1,12 @@
 ---
-title: "kaminoko_analysis_2025"
+title: "kaminoko_2025_GT"
+description: "単純集計用。先に前処理ファイルを実行しておくこと"
 format: html
 execute:
   echo: false
   freeze: auto
   warning: false
 ---
-
-# 準備
-
-## パッケージ読み込み
-
-```{r}
-#| include: false
-
-library(tidyverse)
-library(patchwork)
-```
-
-## データインポートと結合
-```{r}
-library(janitor) # 変数名をきれいにするためのパッケージ
-
-# 結合前データ読み込み
-df1 <- read_csv("kaminoko2025_0608.csv") 
-df2 <- read_csv("kaminoko2025_0614-15.csv")
-df3 <- read_csv("kaminoko2025_0719-20.csv")
-
-
-# 変数名つけなおし（結合する変数のみ）
-df1 <- df1 |> clean_names() # rename()時にエラーが出ないよう変数名をきれいにしておく
-
-df1 <- df1 |> rename(
-  date = diao_zha_ri,
-  v1_sex = q1_xing_bie,
-  v2_gen = q2_nian_ling,
-  v3_hokkaido = q3_o_zhumai,
-  v3_hokkaido_resi = q3_1_shi_ting_cun_ming_bei_hai_dao_nei,
-  v3_not_hokkaido_resi = q3_2_dou_dao_fu_xian_ming_bei_hai_dao_wai ,
-  v4_hokkaido_visits = q4_koremadeno_bei_hai_daoheno_lu_xing_fang_wen_chu_zhangmo_hanmete,
-  v5_companions_cnt = q5_tong_xing_zheno_ren_shu_anata_zi_shenwo_hanmeta_ren_shu,
-  v6_kaminoko_visits = q6_shenno_zi_chiheno_fang_wen,
-  v7 = q7_shenno_zi_chiwo_fang_wenshitakikkake, # ここはあとでダミー変数に分解する
-  v8_scenery_expectation = q8_1_shenno_zi_chiheno_qi_dai_du_jing_seno_meishisaya_zi_ran_nitsuite,
-  v8_general_expectation = q8_2_shenno_zi_chiheno_qi_dai_du_guan_guang_detoshiteno_shenno_zi_chiheno_zong_he_de_man_zu_du_nitsuite,
-  v9_scenery_satisfaction =  q9_1_shenno_zi_chiheno_man_zu_du_jing_seno_meishisaya_zi_ran_ti_yan_nitsuite,
-  v9_access_satisfaction = q9_2_shenno_zi_chiheno_man_zu_du_chimadenoakusesu_nitsuite,
-  v9_facility_satisfaction = q9_3_shenno_zi_chiheno_man_zu_du_toire_zhu_che_changnadono_she_bei_nitsuite,
-  v9_tourist_spot_satisfaction = q9_4_shenno_zi_chiheno_man_zu_du_zhou_bianno_guan_guangsupottono_chong_shi_du_nitsuite,
-  v9_general_satisfaction = q9_5_shenno_zi_chiheno_man_zu_du_shenno_zi_chini_duisuru_zong_he_dena_man_zu_du_nitsuite,
-  v11_revisit_intention = q10_shenno_zi_chiwomata_fang_wenshitaito_siimasuka,
-  v12 = q11_qing_li_tingno_ren_to_jiao_liushitaito_siimasuka, # ここはあとでダミー変数に分解する
-  v13_citizen_consumer = q12_2_zhi_wennotaipu_shuinitotteno_si_zhiwo_weniteiruka,
-  v14_bid1_wtp = q12_1_shenno_zi_chi_no_guan_guang_zi_yuantoshiteno_si_zhiwo_ping_sisurutameno_zhi_wen_ti_shi_e, # あとでここからv14_bid2_yes_wtpとv14_bid2_no_wtpをつくる
-  v14_bid1 = q13_1_di1hui_zhi_fani_yi_si,
-  v14_bid2_yes = q13_2_di2hui_zhi_fani_yi_si_di1hui_zhi_fanu,
-  v14_bid2_no = q13_3_di2hui_zhi_fani_yi_si_di1hui_zhi_fanwanai,
-  v14_reason = q13_4_zhi_fanitakunai_li_you # あとでダミー変数に分解
-)
-
-
-df2 <- df2 |> clean_names() # rename()時にエラーが出ないよう変数名をきれいにしておく
-
-df2 <- df2 |> rename(
-  date = diao_zha_ri,
-  v1_sex = q1_xing_bie,
-  v2_gen = q2_nian_ling,
-  v3_hokkaido = q3_o_zhumai,
-  v3_hokkaido_resi = q3_1_shi_ting_cun_ming_bei_hai_dao_nei,
-  v3_not_hokkaido_resi = q3_2_dou_dao_fu_xian_ming_bei_hai_dao_wai,
-  v4_hokkaido_visits = q4_koremadeno_bei_hai_daoheno_lu_xing_fang_wen_chu_zhangmo_hanmete,
-  v5_companions_cnt = q5_tong_xing_zheno_ren_shu_anata_zi_shenwo_hanmeta_ren_shu,
-  v6_kaminoko_visits = q6_shenno_zi_chiheno_fang_wen,
-  v7 = q7_shenno_zi_chiwo_fang_wenshitakikkake, # ここはあとでダミー変数に分解する
-  v8_scenery_expectation = q8_1_shenno_zi_chiheno_qi_dai_du_jing_seno_meishisaya_zi_ran_nitsuite,
-  v8_general_expectation = q8_2_shenno_zi_chiheno_qi_dai_du_guan_guang_detoshiteno_shenno_zi_chiheno_zong_he_de_man_zu_du_nitsuite,
-  v9_scenery_satisfaction =  q9_1_shenno_zi_chiheno_man_zu_du_jing_seno_meishisaya_zi_ran_ti_yan_nitsuite,
-  v9_access_satisfaction = q9_2_shenno_zi_chiheno_man_zu_du_chimadenoakusesu_nitsuite,
-  v9_facility_satisfaction = q9_3_shenno_zi_chiheno_man_zu_du_toire_zhu_che_changnadono_she_bei_nitsuite,
-  v9_tourist_spot_satisfaction = q9_4_shenno_zi_chiheno_man_zu_du_zhou_bianno_guan_guangsupottono_chong_shi_du_nitsuite,
-  v9_general_satisfaction = q9_5_shenno_zi_chiheno_man_zu_du_shenno_zi_chini_duisuru_zong_he_dena_man_zu_du_nitsuite,
-  v11_revisit_intention = q10_shenno_zi_chiwomata_fang_wenshitaito_siimasuka,
-  v12 = q11_qing_li_tingno_ren_to_jiao_liushitaito_siimasuka, # ここはあとでダミー変数に分解する
-  v13_citizen_consumer = q12_2_zhi_wennotaipu_shuinitotteno_si_zhiwo_weniteiruka,
-  v14_bid1_wtp = q12_1_shenno_zi_chi_no_guan_guang_zi_yuantoshiteno_si_zhiwo_ping_sisurutameno_zhi_wen_ti_shi_e, # あとでここからv14_bid2_yes_wtpとv14_bid2_no_wtpをつくる
-  v14_bid1 = q13_1_di1hui_zhi_fani_yi_si,
-  v14_bid2_yes = q13_2_di2hui_zhi_fani_yi_si_di1hui_zhi_fanu,
-  v14_bid2_no = q13_3_di2hui_zhi_fani_yi_si_di1hui_zhi_fanwanai,
-  v14_reason = q13_4_zhi_fanitakunai_li_you # あとでダミー変数に分解
-)
-
-
-df3 <- df3 |> clean_names() # rename()時にエラーが出ないよう変数名をきれいにしておく
-
-df3 <- df3 |> rename(
-  date = diao_zha_ri,
-  v1_sex = q1_xing_bie,
-  v2_gen = q2_nian_ling,
-  v3_hokkaido = q3_o_zhumai,
-  v3_hokkaido_resi = q3_1_shi_ting_cun_ming_bei_hai_dao_nei,
-  v3_not_hokkaido_resi = q3_2_dou_dao_fu_xian_ming_bei_hai_dao_wai,
-  v4_hokkaido_visits = q4_koremadeno_bei_hai_daoheno_lu_xing_fang_wen_chu_zhangmo_hanmete,
-  v5_companions_cnt = q5_tong_xing_zheno_ren_shu_anata_zi_shenwo_hanmeta_ren_shu,
-  v6_kaminoko_visits = q6_shenno_zi_chiheno_fang_wen,
-  v9_scenery_satisfaction = q8_1_shenno_zi_chiheno_man_zu_du_jing_seno_meishisaya_zi_ran_ti_yan_nitsuite,
-  v9_access_satisfaction = q8_2_shenno_zi_chiheno_man_zu_du_chimadenoakusesu_nitsuite,
-  v9_facility_satisfaction = q8_3_shenno_zi_chiheno_man_zu_du_toire_zhu_che_changnadono_she_bei_nitsuite,
-  v9_tourist_spot_satisfaction = q8_4_shenno_zi_chiheno_man_zu_du_zhou_bianno_guan_guangsupottono_chong_shi_du_nitsuite,
-  v9_general_satisfaction = q8_5_shenno_zi_chiheno_man_zu_du_shenno_zi_chini_duisuru_zong_he_dena_man_zu_du_nitsuite,
-  v10_kaminoko_scenery_satis = q9_1_ge_yao_suno_man_zu_du_chi_zi_tino_meishisa_nitsuite,
-  v10_kaminoko_silence_satis = q9_2_ge_yao_suno_man_zu_du_jingkesa_nitsuite,
-  v10_kaminoko_forest_satis = q9_3_ge_yao_suno_man_zu_du_senno_likasa_nitsuite,
-  v10_kaminoko_achievement_satis = q9_4_ge_yao_suno_man_zu_du_tadori_zheita_da_cheng_gan_nitsuite,
-  v13_citizen_consumer = q7_zhi_wennotaipu_shuinitotteno_si_zhiwo_weniteiruka,
-  v14_bid1_wtp = q7_chu_hui_ti_shi_e, # あとでここからv14_bid2_yes_wtpとv14_bid2_no_wtpをつくる
-  v14_bid1 = q7_1_di1hui_zhi_fani_yi_si,
-  v14_bid2_yes = q7_2_di2hui_zhi_fani_yi_si_di1hui_zhi_fanu,
-  v14_bid2_no = q7_3_di2hui_zhi_fani_yi_si_di1hui_zhi_fanwanai,
-  v14_reason = q7_4_zhi_fanitakunai_li_you # あとでダミー変数に分解
-)
-
-# 結合前にすべて文字列型に変換（型が同じでないと結合できない→満足度などはあとで数値型に直す）
-df1 <- df1 |> mutate(across(everything(), as.character))
-df2 <- df2 |> mutate(across(everything(), as.character))
-df3 <- df3 |> mutate(across(everything(), as.character))
-
-df <- bind_rows(df1, df2, df3)
-```
-
-
-```{r}
-# 臨時作業場。あとで削除
-df |> 
-  separate_rows(v7, sep = ";") |> 
-  mutate(v7 = trimws(v7)) |> 
-  filter(!is.na(v7), v7 != "") |> 
-  mutate(dummy = 1) |> 
-  pivot_wider(
-    id_cols = id,
-    names_from = v7,
-    values_from = dummy,
-    values_fill = 0
-  )
-
-
-df |> 
-  count(v7, sort = TRUE) |> 
-  write.csv("v7_table.csv",
-            row.names = FALSE,
-            fileEncoding = "UTF-8")
-```
-
-
-## 再コーディング
-
-```{r}
-
-# 欠損をすべてNAに置換
-library(stringr) # str_trim()を使うために読み込む
-df <- df |>
-  mutate(
-    across(
-      everything(),
-      ~ {
-        x <- str_trim(.) # 文字列前後の空白を削除
-        ifelse(x %in% c("未回答", "【未回答】", "不明", "NA", "", "その他（未回答）", "【未回答】;", "未回答;"), NA, x)
-      }
-    )
-  )
-
-# idとアンケート番号が違うので修正。アンケート番号はこうする
-df <- df |> 
-  rename(questionnaire_no = id)
-
-# 現在のデータの行番号でidを作っておく
-df <- df |> 
-  mutate(
-    id = row_number()
-  ) |> 
-  relocate(id)  # idを先頭列に移動
-
-
-# date 日付をファクタ化してレベル設定
-df <- df |> 
-  mutate(
-    date = factor(date, levels = c("6月8日", "6月14-15日", "7月19-20日"))
-  ) 
-
-
-# v3 北海道内（外）と道内（外）が混じっていたので道内（外）に統一
-df <- df |> 
-  mutate(
-    v3_hokkaido = case_when(
-      v3_hokkaido == "北海道内" ~ "道内",
-      v3_hokkaido == "北海道外" ~ "道外",
-      TRUE ~ v3_hokkaido
-    )
-  ) 
-
-# v4 値がばらばらなので揃える（最大4回目以上）
-df <- df |>
-  mutate(
-    v4_hokkaido_visits = if_else(
-      v4_hokkaido_visits %in% c("10回", "１０回", "10回以上", "10回位", "10数回", "13回目くらい", "15年行き来している", "４回", "4回目", "5回目", "6", "6回", "6回目", "６回目", "7回目", "たくさん", "多数回", "沢山"),
-      "4回目以上",
-      v4_hokkaido_visits
-    )
-  )
-
-df <- df |> 
-  mutate(
-    v4_hokkaido_visits = if_else(
-      v4_hokkaido_visits %in% c("なし", "在住", "実家が札幌", "数日程度", "道産子"),
-      NA_character_,
-      v4_hokkaido_visits
-    )
-  )
-
-df <- df |> 
-  mutate(
-    v4_hokkaido_visits = if_else(
-      v4_hokkaido_visits %in% c("3～5回", "3") ,  # 3～5回は低めに見積もって3回とする
-      "3回目",
-      v4_hokkaido_visits
-    )
-  )
-
-
-# v5 「1人（同行者はいない）」が冗長なので「1人」に変換。また、最大5人以上に統一しよう
-df <- df |> 
-  mutate(
-    v5_companions_cnt = case_when(
-      v5_companions_cnt == "1人（同行者はいない）" ~ "1人",
-      TRUE ~ v5_companions_cnt
-    )
-  )
-
-# 5人以上に統一
-df <- df |>
-  mutate(
-    v5_companions_cnt = if_else(
-      v5_companions_cnt %in% c("5人", "6", "7人", "７人"),
-      "5人以上",
-      v5_companions_cnt
-    )
-  )
-
-
-# v6 神の子訪問回数が3回目以上ならすべて「3回目以上」に統一
-df <- df |>
-  mutate(
-    v6_kaminoko_visits = if_else(
-      v6_kaminoko_visits %in% c("3回目", "4回以上", "4回目以上", "５回", "何十回も"),
-      "3回目以上",
-      v6_kaminoko_visits
-    )
-  )
-
-# v7をダミー変数化
-df |> 
-  separate_rows(v7, sep = ";") |> 
-
-
-# v13 1,2のままだと使いにくいので、カテゴリー名をかえる。
-df <- df |> 
-  mutate(
-    v13_citizen_consumer = case_when(
-      v13_citizen_consumer == "あなた+他の訪問者+町の住民にとっての価値" ~ "市民選好",
-      v13_citizen_consumer == "あなたにとっての価値" ~ "消費者選好",
-      TRUE ~ NA_character_
-    )
-  )
-
-# v14 CVM質問についてyy, yn, ny, nnのパターンを表す変数をつくる
-df <- df |> 
-  mutate(
-    yes_no_pattern = case_when(
-      v14_bid1 == "支払う" & v14_bid2_yes == "支払う"  & is.na(v14_bid2_no) ~ "yy",
-      v14_bid1 == "支払う" & v14_bid2_yes == "支払わない" ~ "yn",
-      v14_bid1 == "支払わない" & v14_bid2_no == "支払う" ~ "ny",
-      v14_bid1 == "支払わない" & v14_bid2_no == "支払わない" ~ "nn",
-      TRUE ~ NA_character_
-    )
-  )
-
-```
-
-```{r}
-# 整合性チェック
-table(df$v14_bid1,
-      is.na(df$v14_bid2_yes),
-      is.na(df$v14_bid2_no))
-
-```
-
-```{r}
-# CVMの分岐質問であり得ない回答パターンをしているサンプルを抽出
-df |> 
-  filter(v14_bid1 == "支払う" & is.na(v14_bid2_yes) & !is.na(v14_bid2_no)) |> 
-  select(id, questionnaire_no, date) # id428
-
-```
-
-# 単純集計
 
 ## 実施日
 
@@ -563,22 +267,22 @@ p1 + p2 + p3 + p4 + p5
 
 ```{r}
 p1 <- df |> 
-  filter(!is.na(v3_hokkaido), date == "7月19-20日") |> 
+  filter(!is.na(v3_hokkaido), date == "7月20-21日") |> 
   ggplot(aes(x = v3_hokkaido, y = v10_kaminoko_scenery_satis)) +
   geom_boxplot()
 
 p2 <- df |> 
-  filter(!is.na(v3_hokkaido), date == "7月19-20日") |> 
+  filter(!is.na(v3_hokkaido), date == "7月20-21日") |> 
   ggplot(aes(x = v3_hokkaido, y = v10_kaminoko_silence_satis)) +
   geom_boxplot()
 
 p3 <- df |> 
-  filter(!is.na(v3_hokkaido), date == "7月19-20日") |> 
+  filter(!is.na(v3_hokkaido), date == "7月20-21日") |> 
   ggplot(aes(x = v3_hokkaido, y = v10_kaminoko_forest_satis)) +
   geom_boxplot()
 
 p4 <- df |> 
-  filter(!is.na(v3_hokkaido), date == "7月19-20日") |> 
+  filter(!is.na(v3_hokkaido), date == "7月20-21日") |> 
   ggplot(aes(x = v3_hokkaido, y = v10_kaminoko_achievement_satis)) +
   geom_boxplot()
 
@@ -681,7 +385,8 @@ df |>
   coord_cartesian(clip = "off") +
   theme(plot.margin = margin(5.5, 20, 5.5, 5.5))
 ```
-
+# TODO 
+(前処理やり直したらまともな結果になった。ここから下の結果考察はぜんぶやり直し)
 \[19\] 入域料は300円より500円の方がなぜかyes率がわずかに高い。 誤差の範囲だが、あまり価格差が意識されていない？
 
 ```{r}

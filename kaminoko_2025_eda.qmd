@@ -8,9 +8,10 @@ execute:
 
 ## パッケージ読み込み
 
+
+
 ```{r}
 #| include: false
-
 library(tidyverse)
 library(patchwork)
 ```
