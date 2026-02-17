@@ -34,6 +34,7 @@ df3 <- read_csv("kaminoko2025_0719-20.csv")
 df1 <- df1 |> clean_names() # rename()時にエラーが出ないよう変数名をきれいにしておく
 
 df1 <- df1 |> rename(
+  questionnaire_no = anketono_shi_bie_sono1_tongshi_fan_hao, 
   date = diao_zha_ri,
   v1_sex = q1_xing_bie,
   v2_gen = q2_nian_ling,
@@ -65,6 +66,7 @@ df1 <- df1 |> rename(
 df2 <- df2 |> clean_names() # rename()時にエラーが出ないよう変数名をきれいにしておく
 
 df2 <- df2 |> rename(
+  questionnaire_no = anketono_shi_bie_sono1_tongshi_fan_hao, 
   date = diao_zha_ri,
   v1_sex = q1_xing_bie,
   v2_gen = q2_nian_ling,
@@ -96,6 +98,7 @@ df2 <- df2 |> rename(
 df3 <- df3 |> clean_names() # rename()時にエラーが出ないよう変数名をきれいにしておく
 
 df3 <- df3 |> rename(
+  questionnaire_no = anketono_shi_bie_sono1_tongshi_fan_hao, 
   date = diao_zha_ri,
   v1_sex = q1_xing_bie,
   v2_gen = q2_nian_ling,
@@ -119,7 +122,12 @@ df3 <- df3 |> rename(
   v14_bid1 = q7_1_di1hui_zhi_fani_yi_si,
   v14_bid2_yes = q7_2_di2hui_zhi_fani_yi_si_di1hui_zhi_fanu,
   v14_bid2_no = q7_3_di2hui_zhi_fani_yi_si_di1hui_zhi_fanwanai,
-  v14_reason = q7_4_zhi_fanitakunai_li_you # あとでダミー変数に分解
+  v14_reason = q7_4_zhi_fanitakunai_li_you,  # あとでダミー変数に分解
+  v15_critical_access_attitude = q10_1_zhi_zaiwo_fanggeruka_guangi_dao_luno_zheng_bei,
+  v15_critical_parking_attitude = q10_2_zhi_zaiwo_fanggeruka_zhu_che_changno_zheng_bei,
+  v15_critical_crowd_attitude = q10_3_zhi_zaiwo_fanggeruka_da_shino_tano_fang_wen_keni_chu_huiu,
+  v15_critical_shop_attitude = q10_4_zhi_zaiwo_fanggeruka_mai_diangaaru,
+  v15_critical_photospot_attitude = q10_5_zhi_zaiwo_fanggeruka_xie_zhensupottono_kan_bangaaru
 )
 
 # dateに日付未記入のものがあるが、実施タイミングはわかるので識別変数を入れておく
@@ -167,11 +175,7 @@ df <- df |>
 
 ```{r}
 
-# idとアンケート番号が違うので修正。アンケート番号はこうする
-df <- df |> 
-  rename(questionnaire_no = id)
-
-# 現在のデータの行番号でidを作っておく
+# 現在のデータの行番号でidを上書き
 df <- df |> 
   mutate(
     id = row_number()
@@ -235,11 +239,11 @@ df <- df |>
     )
   )
 
-# 回答が回数でないものはNAに
+# 回答が回数でないもの、特定できないものはNAに
 df <- df |> 
   mutate(
     v4_hokkaido_visits = if_else(
-      v4_hokkaido_visits %in% c("なし", "在住", "実家が札幌", "数日程度", "道産子"),
+      v4_hokkaido_visits %in% c("なし", "在住", "実家が札幌", "複数回目", "道産子"),
       NA_character_,
       v4_hokkaido_visits
     )
@@ -550,7 +554,7 @@ bidmiss_id <- rbind(bidmiss_id_1, bidmiss_id_2, bidmiss_id_3, bidmiss_id_4)
 # ありえない回答パターンのサンプル抽出
 df |> 
   semi_join(bidmiss_id, by = "id") |> 
-  select(id, questionnaire_no, v14_bid1, v14_bid2_yes, v14_bid2_no)
+  select(id, date, questionnaire_no, v14_bid1, v14_bid2_yes, v14_bid2_no)
 ```
 
 
@@ -561,15 +565,44 @@ df <- df |>
   mutate(
     yes_no_pattern = case_when(
       v14_bid1 == "支払う" & v14_bid2_yes == "支払う"  & is.na(v14_bid2_no) ~ "yy",
-      v14_bid1 == "支払う" & v14_bid2_yes == "支払わない" ~ "yn",
+      v14_bid1 == "支払う" & v14_bid2_yes == "支払わない"  & is.na(v14_bid2_no) ~ "yn",
       v14_bid1 == "支払わない" & v14_bid2_no == "支払う" ~ "ny",
       v14_bid1 == "支払わない" & v14_bid2_no == "支払わない" ~ "nn",
       TRUE ~ NA_character_
     )
   )
 
-
 ```
 
+
+### v15
+
+```{r}
+
+# 7件法の選択肢を数値に変換する。妨げ度合いを示す変数とする。
+
+score_map <- c(
+  "強く妨げる" = 7,
+  "妨げる" = 6,
+  "少し妨げる" = 5,
+  "どちらでもない" = 4,
+  "あまり妨げない" = 3,
+  "妨げない" = 2,
+  "全く妨げない" = 1
+)
+
+convert_7scale <- function(x){
+  as.integer(score_map[x])
+}
+
+
+df <- df |> mutate(
+  across(
+    c("v15_critical_access_attitude", "v15_critical_parking_attitude", "v15_critical_crowd_attitude", "v15_critical_shop_attitude", "v15_critical_photospot_attitude"), convert_7scale
+  )
+)
+
+
+```
 
 

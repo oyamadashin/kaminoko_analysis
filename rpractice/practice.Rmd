@@ -1,0 +1,53 @@
+---
+title: "practice"
+output: html_document
+date: "2026-02-17"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+x <- c(10, 10, 10, 17, 20, 30, 63, 75, 85, 100)
+N <- length(x)
+
+
+s2 <- (sum(x^2) - N * mean(x)^2) / 9
+s <- sqrt(s2)
+s
+
+sort(x)[7] - sort(x)[2]
+```
+
+```{r}
+# 確率変数
+x <- c(1, 2, 4, 9)
+
+# Xの期待値
+mu <- sum(x) * 1/4
+mu
+
+# Xの分散
+sigma2 <- sum((x - mu)^2) * 1/4  
+sigma2
+
+# Xの4次モーメント
+moment_4 <- sum(x^4) * 1/4
+moment_4
+
+# Xの中央値
+
+
+```
+
+```{r}
+lamda <-  3 * 5
+x <- 20
+
+lamda^(x) / factorial(x) * exp(-lamda)
+```
+```{r}
+df |> count(v14_reason)
+```
+
