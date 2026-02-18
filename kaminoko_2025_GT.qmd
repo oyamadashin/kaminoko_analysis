@@ -97,6 +97,20 @@ df |>
 
 7月調査の方が3回目が多め。
 
+```{r}
+
+df |> 
+  filter(!is.na(v4_hokkaido_visits)) |> 
+  count(v4_hokkaido_visits) |> 
+  mutate(
+    prop = n / sum(n),
+    cumprop = cumsum(prop)
+  ) |> 
+  ggplot(aes(x = v4_hokkaido_visits, y = cumprop, group = 1)) +
+  geom_step()
+```
+- 4回目以上でジャンプする。
+
 ## v5(同行者の人数)
 
 ```{r}
@@ -116,6 +130,52 @@ df |>
 
 \[7\] 7月は3人連れ、4人連れもそこそこ多くなっている。
 
+
+```{r}
+df |> 
+  filter(!is.na(v5_companions_cnt)) |> 
+  count(v5_companions_cnt) |> 
+  mutate(
+    prop = n / sum(n),
+    cumprop = cumsum(prop)
+  ) |> 
+  ggplot(aes(x = v5_companions_cnt, y = cumprop, group = 1)) +
+  geom_step()
+```
+- 2人連れでジャンプ
+
+
+```{r}
+df |> 
+  filter(!is.na(v5_companions_cnt)) |> 
+  count(date, v5_companions_cnt) |> 
+  group_by(date) |> 
+  mutate(
+    prop = n / sum(n),
+    cumprop = cumsum(prop)
+  ) |> 
+  ggplot(aes(x = v5_companions_cnt, y = cumprop, group = 1)) +
+  geom_step() +
+  facet_wrap(~date)
+```
+- 特に6月8日は2人連れが多い。
+
+```{r}
+df |> 
+  filter(!is.na(v5_companions_cnt) & !is.na(v3_hokkaido)) |> 
+  count(date, v3_hokkaido ,v5_companions_cnt) |> 
+  group_by(date, v3_hokkaido) |> 
+  mutate(
+    prop = n / sum(n),
+    cumprop = cumsum(prop)
+  ) |> 
+  ggplot(aes(x = v5_companions_cnt, y = cumprop, group = 1)) +
+  geom_step() +
+  facet_grid(v3_hokkaido~date)
+```
+- [29]道外は6月に2人連れが多く、7月に2人連れが少なめ（人数が分散している）
+- [30]道内は7月4人連れでCDFがジャンプ
+
 ## v6(神の子池訪問回数)
 
 ```{r}
@@ -125,6 +185,9 @@ df |>
 ```
 
 \[8\] 初めて神の子池を訪れたという人が多い。リピーターは少なめ。
+
+
+
 
 ```{r}
 df |> 
@@ -229,6 +292,47 @@ p1 + p2
 
 \[12\] 神の子池期待度の中央値は8。景色の期待度でも総合的期待度でも傾向は変わらない。 まあ、そもそも期待してなければ来ないはずなので、期待度が高くなるのは当然か。
 
+```{r}
+p1 <- df |> 
+  filter(!is.na(v8_scenery_expectation)) |> 
+  ggplot(aes(v8_scenery_expectation)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:10) +
+  ylab("CDF")
+
+p2 <- df |> 
+  filter(!is.na(v8_general_expectation)) |> 
+  ggplot(aes(v8_general_expectation)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:10) +
+  ylab("CDF")
+
+p1 + p2
+```
+- [31]期待度CDFは8と10でジャンプする（景色も総合も同じ）
+
+
+```{r}
+p1 <- df |> 
+  filter(!is.na(v8_scenery_expectation) & !is.na(v3_hokkaido)) |> 
+  ggplot(aes(v8_scenery_expectation)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:10) +
+  ylab("CDF") +
+  facet_wrap(~ v3_hokkaido)
+
+p2 <- df |> 
+  filter(!is.na(v8_general_expectation) & !is.na(v3_hokkaido)) |> 
+  ggplot(aes(v8_general_expectation)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:10) +
+  ylab("CDF") +
+  facet_wrap(~v3_hokkaido)
+
+p1 + p2
+```
+- [32] 期待度CDFは道内外で大差なし。強いて言えば、道外の方が景色期待度が8でジャンプする度合いが大きい。
+
 ## v9(神の子池への満足度)
 
 ```{r}
@@ -263,6 +367,102 @@ p1 + p2 + p3 + p4 + p5
 
 \[13\] 道内・道外居住者で神の子池の満足度傾向にあまり差は見られない。 \[14\] アクセス、設備、周辺観光スポットの満足度は全体的に低い傾向。
 
+```{r}
+p1 <- df |> 
+  filter(!is.na(v3_hokkaido) & !is.na(v9_scenery_satisfaction)) |> 
+  ggplot(aes(x = v9_scenery_satisfaction)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:10) +
+  ylab("CDF") +
+  facet_wrap(~v3_hokkaido)
+
+p2 <- df |> 
+  filter(!is.na(v3_hokkaido) & !is.na(v9_access_satisfaction)) |> 
+  ggplot(aes(x = v9_access_satisfaction)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:10) +
+  ylab("CDF") +
+  facet_wrap(~v3_hokkaido)
+
+p3 <- df |> 
+  filter(!is.na(v3_hokkaido) & !is.na(v9_facility_satisfaction)) |> 
+  ggplot(aes(x = v9_facility_satisfaction)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:10) +
+  ylab("CDF") +
+  facet_wrap(~v3_hokkaido)
+
+p4 <- df |> 
+  filter(!is.na(v3_hokkaido) & !is.na(v9_tourist_spot_satisfaction)) |> 
+  ggplot(aes(x = v9_tourist_spot_satisfaction)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:10) +
+  ylab("CDF") +
+  facet_wrap(~v3_hokkaido)
+
+p5 <- df |> 
+  filter(!is.na(v3_hokkaido) & !is.na(v9_general_satisfaction)) |> 
+  ggplot(aes(x = v9_general_satisfaction)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:10) +
+  ylab("CDF") +
+  facet_wrap(~v3_hokkaido)
+
+p1 + p2 + p3 + p4 + p5
+```
+- [33]景色満足度CDFは10でジャンプ（道外は8でもジャンプ）
+- [34] 施設満足度CDFは5でジャンプ
+- [35] アクセス満足度CDFはジャンプがみられない
+- [36] 周辺観光満足度CDFは5と8でジャンプ（特に道外は5でジャンプ）
+- [37] 総合満足度CDFは8と10でジャンプ
+
+```{r}
+p1 <- df |> 
+  filter(!is.na(v3_hokkaido) & !is.na(v9_scenery_satisfaction)) |> 
+  ggplot(aes(x = v9_scenery_satisfaction)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:10) +
+  ylab("CDF") +
+  facet_grid(date~v3_hokkaido)
+
+p2 <- df |> 
+  filter(!is.na(v3_hokkaido) & !is.na(v9_access_satisfaction)) |> 
+  ggplot(aes(x = v9_access_satisfaction)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:10) +
+  ylab("CDF") +
+  facet_grid(date~v3_hokkaido)
+
+p3 <- df |> 
+  filter(!is.na(v3_hokkaido) & !is.na(v9_facility_satisfaction)) |> 
+  ggplot(aes(x = v9_facility_satisfaction)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:10) +
+  ylab("CDF") +
+  facet_grid(date~v3_hokkaido)
+
+p4 <- df |> 
+  filter(!is.na(v3_hokkaido) & !is.na(v9_tourist_spot_satisfaction)) |> 
+  ggplot(aes(x = v9_tourist_spot_satisfaction)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:10) +
+  ylab("CDF") +
+  facet_grid(date~v3_hokkaido)
+
+p5 <- df |> 
+  filter(!is.na(v3_hokkaido) & !is.na(v9_general_satisfaction)) |> 
+  ggplot(aes(x = v9_general_satisfaction)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:10) +
+  ylab("CDF") +
+  facet_grid(date~v3_hokkaido)
+
+p1 + p2 + p3 + p4 + p5
+```
+
+- [38]7月の総合満足度CDFは立ち上がりがやや早い（虫の影響？）
+- [39]7月の施設満足度CDFは足り上がりがやや早い
+
 ## v10(神の子池のどの側面に満足しているか)
 
 ```{r}
@@ -291,6 +491,49 @@ p1 + p2 + p3 + p4
 ```
 
 \[15\] 道外居住者は神の子池も美しさを評価するが、道内居住者は美しさ以外の側面も評価する傾向がやや強い。
+
+```{r}
+p1 <- df |> 
+  filter(!is.na(v10_kaminoko_scenery_satis) & !is.na(v3_hokkaido)) |> 
+  ggplot(aes(x = v10_kaminoko_scenery_satis)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:10) +
+  ylab("CDF") +
+  xlab("池の美しさ") +
+  facet_wrap(~ v3_hokkaido)
+
+p2 <- df |> 
+  filter(!is.na(v10_kaminoko_silence_satis) & !is.na(v3_hokkaido)) |> 
+  ggplot(aes(x = v10_kaminoko_silence_satis)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:10) +
+  ylab("CDF") +
+  xlab("静けさ") +
+  facet_wrap(~ v3_hokkaido)
+
+p3 <- df |> 
+  filter(!is.na(v10_kaminoko_forest_satis) & !is.na(v3_hokkaido)) |> 
+  ggplot(aes(x = v10_kaminoko_forest_satis)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:10) +
+  ylab("CDF") +
+  xlab("森の豊かさ") +
+  facet_wrap(~ v3_hokkaido)
+
+p4 <- df |> 
+  filter(!is.na(v10_kaminoko_achievement_satis) & !is.na(v3_hokkaido)) |> 
+  ggplot(aes(x = v10_kaminoko_achievement_satis)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:10) +
+  ylab("CDF") +
+  xlab("到着達成感") +
+  facet_wrap(~ v3_hokkaido)
+
+p1 + p2 + p3 + p4
+```
+
+- [39]全体的に道内の方が神の子要素CDFは評価10でジャンプする傾向
+- [40]特に到着達成感CDFは道外はなだらか
 
 ## v11(再訪意思)
 
@@ -533,6 +776,113 @@ df |>
   ggplot(aes(x = v15_critical_access_attitude)) +
   geom_bar()
 ```
+
+```{r}
+p1 <- df |> 
+  filter(!is.na(v15_critical_access_attitude) & !is.na(v3_hokkaido)) |> 
+  ggplot(aes(x = v15_critical_access_attitude)) +
+  stat_ecdf() + 
+  scale_x_continuous(breaks = 1:7) +
+  xlab("広い道路は妨げ") +
+  ylab("CDF") +
+  facet_wrap(~ v3_hokkaido)
+
+p2 <- df |> 
+  filter(!is.na(v15_critical_parking_attitude) & !is.na(v3_hokkaido)) |> 
+  ggplot(aes(x = v15_critical_parking_attitude)) +
+  stat_ecdf() + 
+  scale_x_continuous(breaks = 1:7) +
+  xlab("広い駐車場は妨げ") +
+  ylab("CDF") +
+  facet_wrap(~ v3_hokkaido)
+
+p3 <- df |> 
+  filter(!is.na(v15_critical_crowd_attitude) & !is.na(v3_hokkaido)) |> 
+  ggplot(aes(x = v15_critical_crowd_attitude)) +
+  stat_ecdf() + 
+  scale_x_continuous(breaks = 1:7) +
+  xlab("他の訪問客は妨げ") +
+  ylab("CDF") +
+  facet_wrap(~ v3_hokkaido)
+
+p4 <- df |> 
+  filter(!is.na(v15_critical_shop_attitude) & !is.na(v3_hokkaido)) |> 
+  ggplot(aes(x = v15_critical_shop_attitude)) +
+  stat_ecdf() + 
+  scale_x_continuous(breaks = 1:7) +
+  xlab("売店は妨げ") +
+  ylab("CDF") +
+  facet_wrap(~ v3_hokkaido)
+
+p5 <- df |> 
+  filter(!is.na(v15_critical_photospot_attitude) & !is.na(v3_hokkaido)) |> 
+  ggplot(aes(x = v15_critical_photospot_attitude)) +
+  stat_ecdf() + 
+  scale_x_continuous(breaks = 1:7) +
+  xlab("写真スポット看板は妨げ") +
+  ylab("CDF") +
+  facet_wrap(~ v3_hokkaido)
+
+
+p1 + p2 + p3 + p4 + p5
+```
+
+- ちょっと違いが見えにくい。混雑に関しては右側で急峻になっている感じがするが。
+
+
+```{r}
+p1 <- df |> 
+  filter(!is.na(v15_critical_access_attitude) & !is.na(v3_hokkaido)) |> 
+  ggplot(aes(y = v15_critical_access_attitude)) +
+  geom_boxplot() + 
+  scale_y_continuous(breaks = 1:7) +
+  xlab("広い道路は妨げ") +
+  ylab("妨げ度合い") +
+  facet_wrap(~ v3_hokkaido)
+
+p2 <- df |> 
+  filter(!is.na(v15_critical_parking_attitude) & !is.na(v3_hokkaido)) |> 
+  ggplot(aes(y = v15_critical_parking_attitude)) +
+  geom_boxplot() + 
+  scale_y_continuous(breaks = 1:7) +
+  xlab("広い駐車場は妨げ") +
+  ylab("妨げ度合い") +
+  facet_wrap(~ v3_hokkaido)
+
+p3 <- df |> 
+  filter(!is.na(v15_critical_crowd_attitude) & !is.na(v3_hokkaido)) |> 
+  ggplot(aes(y = v15_critical_crowd_attitude)) +
+  geom_boxplot() + 
+  scale_y_continuous(breaks = 1:7) +
+  xlab("他の訪問客は妨げ") +
+  ylab("妨げ度合い") +
+  facet_wrap(~ v3_hokkaido)
+
+p4 <- df |> 
+  filter(!is.na(v15_critical_shop_attitude) & !is.na(v3_hokkaido)) |> 
+  ggplot(aes(y = v15_critical_shop_attitude)) +
+  geom_boxplot() + 
+  scale_y_continuous(breaks = 1:7) +
+  xlab("売店は妨げ") +
+  ylab("妨げ度合い") +
+  facet_wrap(~ v3_hokkaido)
+
+p5 <- df |> 
+  filter(!is.na(v15_critical_photospot_attitude) & !is.na(v3_hokkaido)) |> 
+  ggplot(aes(y = v15_critical_photospot_attitude)) +
+  geom_boxplot() + 
+  scale_y_continuous(breaks = 1:7) +
+  xlab("写真スポット看板は妨げ") +
+  ylab("妨げ度合い") +
+  facet_wrap(~ v3_hokkaido)
+
+
+p1 + p2 + p3 + p4 + p5
+```
+
+- [41]道外の方が他の訪問客は妨げと感じる傾向が強い
+- [42]広い駐車場は妨げとする回答はばらつきが大きい
+
 ```{r}
 # 駐車場の整備に対する否定的態度
 df |> 
