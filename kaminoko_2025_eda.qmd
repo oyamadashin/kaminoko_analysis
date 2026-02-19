@@ -289,6 +289,16 @@ df |>
 -   あれ？　道内の方が期待度高めかな。平均とかもみないとよくわからないな。
 
 ```{r}
+df |> 
+  filter(!is.na(v8_scenery_expectation) & !is.na(v3_hokkaido)) |> 
+  ggplot(aes(x = v8_scenery_expectation)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:10) +
+  facet_wrap(~ v3_hokkaido)
+```
+道外の方が8あたりで大きくジャンプしている。一方、道内の方がばらつきがやや多い
+
+```{r}
 # 居住地×景色期待度で箱ひげ図＋バイオリンプロット
 df |> 
   filter(!is.na(v8_scenery_expectation) & !is.na(v3_hokkaido)) |> 
@@ -319,6 +329,16 @@ df |>
 ```{r}
 df |> 
   filter(!is.na(v8_general_expectation) & !is.na(v3_hokkaido)) |> 
+  ggplot(aes(x = v8_general_expectation)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:10) +
+  facet_wrap(~ v3_hokkaido)
+```
+やはり道内の方が期待度のばらつきが多いようにみえる
+
+```{r}
+df |> 
+  filter(!is.na(v8_general_expectation) & !is.na(v3_hokkaido)) |> 
   ggplot(aes(x = v3_hokkaido, y = v8_general_expectation)) +
   geom_violin(trim = FALSE) +
   geom_boxplot(width = 0.15, outlier.shape = NA)
@@ -329,14 +349,16 @@ df |>
 ### 同行者の提案×景色期待度
 
 ```{r}
-# 同行者の提案×景色期待度で棒グラフ
+# 同行者の提案×景色期待度でCDF
 df |> 
   filter(!is.na(v8_scenery_expectation) & !is.na(v7_companion_suggestion)) |> 
   group_by(v7_companion_suggestion) |> 
   ggplot(aes(x = v8_scenery_expectation)) +
-  geom_bar() +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:10) +
   facet_wrap(~v7_companion_suggestion)
 ```
+[43]同行者の提案がきっかけの方が景色期待度CFDのばらつきが大きい
 
 ```{r}
 # 同行者の提案×景色期待度で箱ひげ図＋バイオリンプロット
@@ -367,75 +389,301 @@ df |>
   facet_wrap(~as.factor(v7_companion_suggestion))
 ```
 
--   どうも、「道内か道外か」も「同行者の提案がきっかけかそうでないか」も、どちらも期待度の尾の伸びに影響している感じだ。で、道内の、同行者の提案がきっかけの人たちが一番尾の伸びが大きい。逆に、道外の、同行者の提案以外がきっかけの人たちは、尾の伸びが一番小さい。
 
--   やっぱりコストの問題かな。道内で、かつ同行者の提案がきっかけというのは、「まあ、別に興味無いけど、そんなに言うなら行ってみようかな」くらいの軽い気持ちで来ている可能性がある。それに対し、道外で、かつ同行者の提案以外がきっかけの人たちは、「よし、行こう！」とそれなりに踏ん切りをつけないと行こうと思わない。そういう踏ん切りをつけるためには、神の子池に対してそれなりに高い期待を持っていなければならないのだ。
+```{r}
+# 同行者の提案×景色期待度でCDF
+df |> 
+  filter(!is.na(v8_scenery_expectation) & !is.na(v7_companion_suggestion) & !is.na(v3_hokkaido)) |> 
+  group_by(v7_companion_suggestion) |> 
+  ggplot(aes(x = v8_scenery_expectation)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:10) +
+  facet_grid(v3_hokkaido~v7_companion_suggestion)
+```
 
--   （総合期待度についても同様に分析しておこう）
+- 道内か道外かよりも、同行者の提案がきっかけかどうかで景色期待度CDFの形状が決まっているようだ。
+
+```{r}
+# 同行者の提案×総合期待度でCDF
+df |> 
+  filter(!is.na(v8_general_expectation) & !is.na(v7_companion_suggestion) & !is.na(v3_hokkaido)) |> 
+  group_by(v7_companion_suggestion) |> 
+  ggplot(aes(x = v8_general_expectation)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:10) +
+  facet_grid(v3_hokkaido~v7_companion_suggestion)
+```
+
+- 総合期待度についてはむしろ道内か道外かの方が影響しているようにみえる。ただ、影響の方向性がいまいちつかめない。
+
+
+
+## 自然志向は何に影響する？
+
+### 自然志向 × 池の要素の満足度
+
+```{r}
+# v15_critical_access_attitude × v10_kaminoko_scenery_satis
+
+df |> 
+  filter(!is.na(v10_kaminoko_scenery_satis) & !is.na(v15_critical_access_attitude)) |> 
+  count(v10_kaminoko_scenery_satis, v15_critical_access_attitude) |> 
+  ggplot(aes(x = v15_critical_access_attitude, y = v10_kaminoko_scenery_satis, size = n)) +
+  geom_point() +
+  scale_x_continuous(breaks = 1:7) +
+  scale_y_continuous(breaks = 1:10)
+```
+相関はみられない
+
+```{r}
+# v15_critical_access_attitude × v10_kaminoko_silence_satis
+
+df |> 
+  filter(!is.na(v10_kaminoko_silence_satis) & !is.na(v15_critical_access_attitude)) |> 
+  count(v10_kaminoko_silence_satis, v15_critical_access_attitude) |> 
+  ggplot(aes(x = v15_critical_access_attitude, y = v10_kaminoko_silence_satis, size = n)) +
+  geom_point() +
+  scale_x_continuous(breaks = 1:7) +
+  scale_y_continuous(breaks = 1:10)
+```
+相関見られない
+
+```{r}
+# v15_critical_access_attitude × v10_kaminoko_forest_satis
+
+df |> 
+  filter(!is.na(v10_kaminoko_forest_satis) & !is.na(v15_critical_access_attitude)) |> 
+  count(v10_kaminoko_forest_satis, v15_critical_access_attitude) |> 
+  ggplot(aes(x = v15_critical_access_attitude, y = v10_kaminoko_forest_satis, size = n)) +
+  geom_point() +
+  scale_x_continuous(breaks = 1:7) +
+  scale_y_continuous(breaks = 1:10)
+```
+
+相関はみられない
+
+
+```{r}
+# v15_critical_access_attitude × v10_kaminoko_achievement_satis
+
+df |> 
+  filter(!is.na(v10_kaminoko_achievement_satis) & !is.na(v15_critical_access_attitude)) |> 
+  count(v10_kaminoko_achievement_satis, v15_critical_access_attitude) |> 
+  ggplot(aes(x = v15_critical_access_attitude, y = v10_kaminoko_achievement_satis, size = n)) +
+  geom_point() +
+  scale_x_continuous(breaks = 1:7) +
+  scale_y_continuous(breaks = 1:10)
+```
+
+- 微妙に相関があるような… →　相関係数出したらまったく相関なかった
+
+```{r}
+# 面倒なのでいっぺんに相関行列を出してみよう
+m <- df |> 
+  select(v15_critical_access_attitude, v15_critical_parking_attitude, v15_critical_crowd_attitude, v15_critical_shop_attitude, v15_critical_photospot_attitude,v10_kaminoko_scenery_satis, v10_kaminoko_silence_satis, v10_kaminoko_forest_satis, v10_kaminoko_achievement_satis) |> 
+  cor(use = "pairwise.complete.obs", method="kendall")
+
+corrplot(m)
+```
+うん。関係はまったくなさそう。
+
+[44]自然志向変数と神の子要素満足度には全く相関なし
+
+### 自然志向 × 神の子訪問満足度
+
+```{r}
+# 面倒なのでいっぺんに相関行列を出してみよう
+m <- df |> 
+  select(v15_critical_access_attitude, v15_critical_parking_attitude, v15_critical_crowd_attitude, v15_critical_shop_attitude, v15_critical_photospot_attitude, 
+         v9_scenery_satisfaction, v9_access_satisfaction, v9_facility_satisfaction, v9_tourist_spot_satisfaction, v9_general_satisfaction) |> 
+  cor(use = "pairwise.complete.obs", method="kendall")
+
+corrplot(m)
+```
+
+これも関係なさそうだな。ただ、自然志向でクラスター分析したら訪問者のタイプ分けはできそうだ。
+
+[45]自然志向変数と神の子訪問満足度には全く相関なし
+
+
+### 年代による自然志向の違い
+
+```{r}
+df |> 
+  filter(!is.na(v2_gen) & !is.na(v15_critical_access_attitude)) |> 
+  ggplot(aes(x = v15_critical_access_attitude)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("広い道路は理想の自然観光の妨げになるか？") +
+  facet_wrap(~ v2_gen)
+```
+
+60代と70代以上は広い道路の整備についてどちらでもないという意見が多い。意見の多様性が低いということか？
+
+```{r}
+df |>
+  filter(!is.na(v2_gen)) |> 
+  mutate(
+   older_than_60 = case_when(
+     v2_gen %in% c("60代", "70代以上")  ~ "60代以上",
+     TRUE ~ "60代未満"
+   ) 
+  ) |> 
+  group_by(older_than_60) |> 
+  summarise(
+    n = sum(!is.na(v15_critical_access_attitude)),
+    mean = mean(v15_critical_access_attitude, na.rm = TRUE),
+    sd = sd(v15_critical_access_attitude, na.rm = TRUE)
+    )
+  
+```
+[47]60代以上は広い道路が妨げかという意見の多様性が低い
+
+```{r}
+df |> 
+  filter(!is.na(v2_gen) & !is.na(v15_critical_parking_attitude)) |> 
+  ggplot(aes(x = v15_critical_parking_attitude)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("広い駐車場は理想の自然観光の妨げになるか？") +
+  facet_wrap(~ v2_gen)
+```
+少し傾向が見えにくい
+
+```{r}
+df |>
+  filter(!is.na(v2_gen)) |> 
+  mutate(
+   older_than_60 = case_when(
+     v2_gen %in% c("60代", "70代以上")  ~ "60代以上",
+     TRUE ~ "60代未満"
+   ) 
+  ) |> 
+  group_by(older_than_60) |> 
+  summarise(
+    n = sum(!is.na(v15_critical_parking_attitude)),
+    mean = mean(v15_critical_parking_attitude, na.rm = TRUE),
+    sd = sd(v15_critical_parking_attitude, na.rm = TRUE)
+    )
+  
+```
+
+```{r}
+df |> 
+  filter(!is.na(v2_gen) & !is.na(v15_critical_crowd_attitude)) |> 
+  ggplot(aes(x = v15_critical_crowd_attitude)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("観光客の多さは理想の自然観光の妨げになるか？") +
+  facet_wrap(~ v2_gen)
+```
+全体的に右に寄る傾向。観光客の多さはだいたいどの年代でも嫌われるよう。ただ、60代、70代以上に関してはその傾向が弱いようだ。→というより、ばらつきが小さい
+
+
+
+```{r}
+df |>
+  filter(!is.na(v2_gen)) |> 
+  mutate(
+   older_than_60 = case_when(
+     v2_gen %in% c("60代", "70代以上")  ~ "60代以上",
+     TRUE ~ "60代未満"
+   ) 
+  ) |> 
+  ggplot(aes(x = v15_critical_crowd_attitude)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("観光客の多さは理想の自然観光の妨げになるか？") +
+  facet_wrap(~ older_than_60)
+```
+```{r}
+df |>
+  filter(!is.na(v2_gen)) |> 
+  mutate(
+   older_than_60 = case_when(
+     v2_gen %in% c("60代", "70代以上")  ~ "60代以上",
+     TRUE ~ "60代未満"
+   ) 
+  ) |> 
+  group_by(older_than_60) |> 
+  summarise(
+    n = sum(!is.na(v15_critical_crowd_attitude)),
+    mean = mean(v15_critical_crowd_attitude, na.rm = TRUE),
+    sd = sd(v15_critical_crowd_attitude, na.rm = TRUE)
+    )
+  
+```
+[46]60代以上は観光客が妨げかという意見の多様性が低い
+
+```{r}
+df |>
+  filter(!is.na(v2_gen)) |> 
+  mutate(
+   older_than_60 = case_when(
+     v2_gen %in% c("60代", "70代以上")  ~ "60代以上",
+     TRUE ~ "60代未満"
+   ) 
+  ) |> 
+  ggplot(aes(x = v15_critical_shop_attitude)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("売店は理想の自然観光の妨げになるか？") +
+  facet_wrap(~ older_than_60)
+```
+```{r}
+df |>
+  filter(!is.na(v2_gen)) |> 
+  mutate(
+   older_than_60 = case_when(
+     v2_gen %in% c("60代", "70代以上")  ~ "60代以上",
+     TRUE ~ "60代未満"
+   ) 
+  ) |> 
+  group_by(older_than_60) |> 
+  summarise(
+    n = sum(!is.na(v15_critical_shop_attitude)),
+    mean = mean(v15_critical_shop_attitude, na.rm = TRUE),
+    sd = sd(v15_critical_shop_attitude, na.rm = TRUE)
+    )
+  
+```
+[48]売店が妨げとなるかという意見のばらつきは同程度だが60代以上の平均が高い
+
+```{r}
+df |>
+  filter(!is.na(v2_gen)) |> 
+  mutate(
+   older_than_60 = case_when(
+     v2_gen %in% c("60代", "70代以上")  ~ "60代以上",
+     TRUE ~ "60代未満"
+   ) 
+  ) |> 
+  ggplot(aes(x = v15_critical_photospot_attitude)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("撮影スポットは理想の自然観光の妨げになるか？") +
+  facet_wrap(~ older_than_60)
+```
+```{r}
+df |>
+  filter(!is.na(v2_gen)) |> 
+  mutate(
+   older_than_60 = case_when(
+     v2_gen %in% c("60代", "70代以上")  ~ "60代以上",
+     TRUE ~ "60代未満"
+   ) 
+  ) |> 
+  group_by(older_than_60) |> 
+  summarise(
+    n = sum(!is.na(v15_critical_photospot_attitude)),
+    mean = mean(v15_critical_photospot_attitude, na.rm = TRUE),
+    sd = sd(v15_critical_photospot_attitude, na.rm = TRUE)
+    )
+  
+```
+撮影スポットに関しても60代以上の方がばらつきが小さい
+
 
 ## WTP関連
 
-```{r}
-bid1_df <- df |> 
-  filter(!is.na(v14_bid1)) |> 
-  group_by(v14_bid1_wtp) |> 
-  summarise(
-    yes_rate = mean(v14_bid1 == "支払う"),
-    n = n(),
-    yes_n = round(n * yes_rate)
-  )
 
-
-
-df_plot <- tibble::tibble(
-  bid1 = 500,
-  stage = c("bid1", "bid2", "bid2"),
-  branch = c("all", "yes", "no"),   # ← ここが重要
-  bid = c(500, 1000, 300),
-  yes_rate = c(0.75, 0.60, 0.70),
-  n = c(51, 30, 21)
-)
-
-
-df_arrow <- df_plot |>
-  filter(stage == "bid2") |>
-  left_join(
-    df_plot |> filter(stage == "bid1"),
-    by = "bid1",
-    suffix = c("_to", "_from")
-  )
-
-
-ggplot() +
-  geom_segment(
-    data = df_arrow,
-    aes(
-      x = bid_from,
-      y = yes_rate_from,
-      xend = bid_to,
-      yend = yes_rate_to,
-      linetype = NULL
-    ),
-    arrow = arrow(length = unit(0.2, "cm")),
-    alpha = 0.7
-  ) +
-  geom_point(
-    data = df_plot,
-    aes(x = bid, y = yes_rate, size = n),
-    shape = 21, fill = "white"
-  ) +
-  scale_y_continuous(labels = scales::percent) +
-  scale_size_continuous(range = c(3, 8)) +
-  scale_linetype_manual(
-    values = c(yes = "solid", no = "dashed")
-  ) +
-  labs(
-    x = "提示額（円）",
-    y = "Yes率",
-    linetype = "初回回答",
-    size = "回答者数"
-  )
-
-
-
-```

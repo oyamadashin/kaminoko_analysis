@@ -17,6 +17,7 @@ execute:
 
 library(tidyverse)
 library(patchwork)
+library(corrplot) # 相関行列を求める
 ```
 
 ## データインポートと結合
