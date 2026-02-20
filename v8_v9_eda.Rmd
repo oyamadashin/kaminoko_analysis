@@ -1,0 +1,159 @@
+---
+title: "v8_v9_eda"
+output: html_document
+date: "2026-02-20"
+# v8(神の子訪問への期待度)、v9(神の子訪問の満足度)
+---
+
+## 期待度関連
+
+-   神の子池に来るまでのコストが高い人の方が、その分、神の子池に対する期待度が高いのではないだろうか。そうでなければそもそもコストを支払おうとしないだろう。
+
+    -   これを検証するには？
+
+    -   コストに該当するのは居住地「道内・道外」か、だろう。道外の人の方がコストが高い。また、「同行者の提案がきっかけ」という人は受身なのでコストが低いという見方もできる。どちらもダミー変数だな。
+
+    -   だから単純に、ダミー変数の0, 1それぞれでファセットして期待度分布の違いをみる、というのでいいと思う。あるいはcolorでグループ分けするのもOK。
+
+### 居住地×景色期待度
+
+```{r}
+# 居住地×景色期待度で棒グラフ
+df |> 
+  filter(!is.na(v8_scenery_expectation) & !is.na(v3_hokkaido)) |> 
+  group_by(v3_hokkaido) |> 
+  ggplot(aes(x = v8_scenery_expectation)) +
+  geom_bar() +
+  facet_wrap(~v3_hokkaido)
+  
+```
+
+-   あれ？　道内の方が期待度高めかな。平均とかもみないとよくわからないな。
+
+```{r}
+df |> 
+  filter(!is.na(v8_scenery_expectation) & !is.na(v3_hokkaido)) |> 
+  ggplot(aes(x = v8_scenery_expectation)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:10) +
+  facet_wrap(~ v3_hokkaido)
+```
+道外の方が8あたりで大きくジャンプしている。一方、道内の方がばらつきがやや多い
+
+```{r}
+# 居住地×景色期待度で箱ひげ図＋バイオリンプロット
+df |> 
+  filter(!is.na(v8_scenery_expectation) & !is.na(v3_hokkaido)) |> 
+  ggplot(aes(x = v3_hokkaido, y = v8_scenery_expectation)) +
+  geom_violin(trim = FALSE) +
+  geom_boxplot(width = 0.15, outlier.shape = NA)
+```
+
+-   期待度の中央値は同じ。高得点の方の分布はほとんど変わらない。
+
+-   一方、道内の方が尾が長い。つまり、期待度の低い人たちが少し見られるということだ。
+
+    -   **彼らはどういう人たちだろう？　同行者に連れてこられた人たち？　再訪経験があってあまり期待をせずに来た人たち？**
+
+### 居住地×総合期待度
+
+```{r}
+# 居住地×総合期待度で棒グラフ
+
+df |> 
+  filter(!is.na(v8_general_expectation) & !is.na(v3_hokkaido)) |> 
+  group_by(v3_hokkaido) |> 
+  ggplot(aes(x = v8_general_expectation)) +
+  geom_bar() +
+  facet_wrap(~v3_hokkaido)
+```
+
+```{r}
+df |> 
+  filter(!is.na(v8_general_expectation) & !is.na(v3_hokkaido)) |> 
+  ggplot(aes(x = v8_general_expectation)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:10) +
+  facet_wrap(~ v3_hokkaido)
+```
+やはり道内の方が期待度のばらつきが多いようにみえる
+
+```{r}
+df |> 
+  filter(!is.na(v8_general_expectation) & !is.na(v3_hokkaido)) |> 
+  ggplot(aes(x = v3_hokkaido, y = v8_general_expectation)) +
+  geom_violin(trim = FALSE) +
+  geom_boxplot(width = 0.15, outlier.shape = NA)
+```
+
+-   総合期待度も似たような傾向かなあ。
+
+### 同行者の提案×景色期待度
+
+```{r}
+# 同行者の提案×景色期待度でCDF
+df |> 
+  filter(!is.na(v8_scenery_expectation) & !is.na(v7_companion_suggestion)) |> 
+  group_by(v7_companion_suggestion) |> 
+  ggplot(aes(x = v8_scenery_expectation)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:10) +
+  facet_wrap(~v7_companion_suggestion)
+```
+[43]同行者の提案がきっかけの方が景色期待度CFDのばらつきが大きい
+
+```{r}
+# 同行者の提案×景色期待度で箱ひげ図＋バイオリンプロット
+df |> 
+  filter(!is.na(v8_scenery_expectation) & !is.na(v7_companion_suggestion)) |> 
+  ggplot(aes(x = as.factor(v7_companion_suggestion), y = v8_scenery_expectation)) +
+  geom_violin(trim = FALSE) +
+  geom_boxplot(width = 0.15, outlier.shape = NA)
+```
+
+-   同行者の提案で来た人たちの方が期待度がばらける感じ。同行者に提案されて「楽しみ！」という人もいれば「ええー。面倒だけど仕方ないなあ」という人もいる、ということか。
+
+```{r}
+df |> 
+  filter(!is.na(v8_scenery_expectation) & !is.na(v7_companion_suggestion) & !is.na(v3_hokkaido)) |> 
+  ggplot(aes(x = as.factor(v7_companion_suggestion), y = v8_scenery_expectation)) +
+  geom_violin(trim = FALSE) +
+  geom_boxplot(width = 0.15, outlier.shape = NA) +
+  facet_wrap(~v3_hokkaido)
+```
+
+```{r}
+df |> 
+  filter(!is.na(v8_scenery_expectation) & !is.na(v7_companion_suggestion) & !is.na(v3_hokkaido)) |> 
+  ggplot(aes(x = v3_hokkaido, y = v8_scenery_expectation)) +
+  geom_violin(trim = FALSE) +
+  geom_boxplot(width = 0.15, outlier.shape = NA) +
+  facet_wrap(~as.factor(v7_companion_suggestion))
+```
+
+
+```{r}
+# 同行者の提案×景色期待度でCDF
+df |> 
+  filter(!is.na(v8_scenery_expectation) & !is.na(v7_companion_suggestion) & !is.na(v3_hokkaido)) |> 
+  group_by(v7_companion_suggestion) |> 
+  ggplot(aes(x = v8_scenery_expectation)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:10) +
+  facet_grid(v3_hokkaido~v7_companion_suggestion)
+```
+
+- 道内か道外かよりも、同行者の提案がきっかけかどうかで景色期待度CDFの形状が決まっているようだ。
+
+```{r}
+# 同行者の提案×総合期待度でCDF
+df |> 
+  filter(!is.na(v8_general_expectation) & !is.na(v7_companion_suggestion) & !is.na(v3_hokkaido)) |> 
+  group_by(v7_companion_suggestion) |> 
+  ggplot(aes(x = v8_general_expectation)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:10) +
+  facet_grid(v3_hokkaido~v7_companion_suggestion)
+```
+
+- 総合期待度についてはむしろ道内か道外かの方が影響しているようにみえる。ただ、影響の方向性がいまいちつかめない。

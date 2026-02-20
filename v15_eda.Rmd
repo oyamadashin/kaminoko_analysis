@@ -1,0 +1,285 @@
+---
+title: "v15_eda"
+output: html_document
+date: "2026-02-19"
+# v15 (自然志向)のEDA
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+## v15 × 池の要素の満足度
+
+```{r}
+# v15_critical_access_attitude × v10_kaminoko_scenery_satis
+
+df |> 
+  filter(!is.na(v10_kaminoko_scenery_satis) & !is.na(v15_critical_access_attitude)) |> 
+  count(v10_kaminoko_scenery_satis, v15_critical_access_attitude) |> 
+  ggplot(aes(x = v15_critical_access_attitude, y = v10_kaminoko_scenery_satis, size = n)) +
+  geom_point() +
+  scale_x_continuous(breaks = 1:7) +
+  scale_y_continuous(breaks = 1:10)
+```
+相関はみられない
+
+```{r}
+# v15_critical_access_attitude × v10_kaminoko_silence_satis
+
+df |> 
+  filter(!is.na(v10_kaminoko_silence_satis) & !is.na(v15_critical_access_attitude)) |> 
+  count(v10_kaminoko_silence_satis, v15_critical_access_attitude) |> 
+  ggplot(aes(x = v15_critical_access_attitude, y = v10_kaminoko_silence_satis, size = n)) +
+  geom_point() +
+  scale_x_continuous(breaks = 1:7) +
+  scale_y_continuous(breaks = 1:10)
+```
+相関見られない
+
+```{r}
+# v15_critical_access_attitude × v10_kaminoko_forest_satis
+
+df |> 
+  filter(!is.na(v10_kaminoko_forest_satis) & !is.na(v15_critical_access_attitude)) |> 
+  count(v10_kaminoko_forest_satis, v15_critical_access_attitude) |> 
+  ggplot(aes(x = v15_critical_access_attitude, y = v10_kaminoko_forest_satis, size = n)) +
+  geom_point() +
+  scale_x_continuous(breaks = 1:7) +
+  scale_y_continuous(breaks = 1:10)
+```
+
+相関はみられない
+
+
+```{r}
+# v15_critical_access_attitude × v10_kaminoko_achievement_satis
+
+df |> 
+  filter(!is.na(v10_kaminoko_achievement_satis) & !is.na(v15_critical_access_attitude)) |> 
+  count(v10_kaminoko_achievement_satis, v15_critical_access_attitude) |> 
+  ggplot(aes(x = v15_critical_access_attitude, y = v10_kaminoko_achievement_satis, size = n)) +
+  geom_point() +
+  scale_x_continuous(breaks = 1:7) +
+  scale_y_continuous(breaks = 1:10)
+```
+
+- 微妙に相関があるような… →　相関係数出したらまったく相関なかった
+
+```{r}
+# 面倒なのでいっぺんに相関行列を出してみよう
+m <- df |> 
+  select(v15_critical_access_attitude, v15_critical_parking_attitude, v15_critical_crowd_attitude, v15_critical_shop_attitude, v15_critical_photospot_attitude,v10_kaminoko_scenery_satis, v10_kaminoko_silence_satis, v10_kaminoko_forest_satis, v10_kaminoko_achievement_satis) |> 
+  cor(use = "pairwise.complete.obs", method="kendall")
+
+corrplot(m)
+```
+うん。関係はまったくなさそう。
+
+## →関連性みられない
+
+[44]自然志向変数と神の子要素満足度には全く相関なし
+
+
+## v15 × 神の子訪問満足度
+
+```{r}
+# 面倒なのでいっぺんに相関行列を出してみよう
+m <- df |> 
+  select(v15_critical_access_attitude, v15_critical_parking_attitude, v15_critical_crowd_attitude, v15_critical_shop_attitude, v15_critical_photospot_attitude, 
+         v9_scenery_satisfaction, v9_access_satisfaction, v9_facility_satisfaction, v9_tourist_spot_satisfaction, v9_general_satisfaction) |> 
+  cor(use = "pairwise.complete.obs", method="kendall")
+
+corrplot(m)
+```
+
+これも関係なさそうだな。ただ、自然志向でクラスター分析したら訪問者のタイプ分けはできそうだ。
+
+## →関連性みられない
+
+[45]自然志向変数と神の子訪問満足度には全く相関なし
+
+
+# v15 × 年代
+
+```{r}
+df |> 
+  filter(!is.na(v2_gen) & !is.na(v15_critical_access_attitude)) |> 
+  ggplot(aes(x = v15_critical_access_attitude)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("広い道路は理想の自然観光の妨げになるか？") +
+  facet_wrap(~ v2_gen)
+```
+
+60代と70代以上は広い道路の整備についてどちらでもないという意見が多い。意見の多様性が低いということか？
+
+```{r}
+df |>
+  filter(!is.na(v2_gen)) |> 
+  mutate(
+   older_than_60 = case_when(
+     v2_gen %in% c("60代", "70代以上")  ~ "60代以上",
+     TRUE ~ "60代未満"
+   ) 
+  ) |> 
+  group_by(older_than_60) |> 
+  summarise(
+    n = sum(!is.na(v15_critical_access_attitude)),
+    mean = mean(v15_critical_access_attitude, na.rm = TRUE),
+    sd = sd(v15_critical_access_attitude, na.rm = TRUE)
+    )
+  
+```
+## →高齢者の意見偏り（広い道路）
+[47]60代以上は広い道路が妨げかという意見の多様性が低い
+
+```{r}
+df |> 
+  filter(!is.na(v2_gen) & !is.na(v15_critical_parking_attitude)) |> 
+  ggplot(aes(x = v15_critical_parking_attitude)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("広い駐車場は理想の自然観光の妨げになるか？") +
+  facet_wrap(~ v2_gen)
+```
+少し傾向が見えにくい
+
+```{r}
+df |>
+  filter(!is.na(v2_gen)) |> 
+  mutate(
+   older_than_60 = case_when(
+     v2_gen %in% c("60代", "70代以上")  ~ "60代以上",
+     TRUE ~ "60代未満"
+   ) 
+  ) |> 
+  group_by(older_than_60) |> 
+  summarise(
+    n = sum(!is.na(v15_critical_parking_attitude)),
+    mean = mean(v15_critical_parking_attitude, na.rm = TRUE),
+    sd = sd(v15_critical_parking_attitude, na.rm = TRUE)
+    )
+  
+```
+
+```{r}
+df |> 
+  filter(!is.na(v2_gen) & !is.na(v15_critical_crowd_attitude)) |> 
+  ggplot(aes(x = v15_critical_crowd_attitude)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("観光客の多さは理想の自然観光の妨げになるか？") +
+  facet_wrap(~ v2_gen)
+```
+全体的に右に寄る傾向。観光客の多さはだいたいどの年代でも嫌われるよう。ただ、60代、70代以上に関してはその傾向が弱いようだ。→というより、ばらつきが小さい
+
+
+
+```{r}
+df |>
+  filter(!is.na(v2_gen)) |> 
+  mutate(
+   older_than_60 = case_when(
+     v2_gen %in% c("60代", "70代以上")  ~ "60代以上",
+     TRUE ~ "60代未満"
+   ) 
+  ) |> 
+  ggplot(aes(x = v15_critical_crowd_attitude)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("観光客の多さは理想の自然観光の妨げになるか？") +
+  facet_wrap(~ older_than_60)
+```
+```{r}
+df |>
+  filter(!is.na(v2_gen)) |> 
+  mutate(
+   older_than_60 = case_when(
+     v2_gen %in% c("60代", "70代以上")  ~ "60代以上",
+     TRUE ~ "60代未満"
+   ) 
+  ) |> 
+  group_by(older_than_60) |> 
+  summarise(
+    n = sum(!is.na(v15_critical_crowd_attitude)),
+    mean = mean(v15_critical_crowd_attitude, na.rm = TRUE),
+    sd = sd(v15_critical_crowd_attitude, na.rm = TRUE)
+    )
+  
+```
+## →高齢者の意見偏り（観光客）
+[46]60代以上は観光客が妨げかという意見の多様性が低い
+
+```{r}
+df |>
+  filter(!is.na(v2_gen)) |> 
+  mutate(
+   older_than_60 = case_when(
+     v2_gen %in% c("60代", "70代以上")  ~ "60代以上",
+     TRUE ~ "60代未満"
+   ) 
+  ) |> 
+  ggplot(aes(x = v15_critical_shop_attitude)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("売店は理想の自然観光の妨げになるか？") +
+  facet_wrap(~ older_than_60)
+```
+```{r}
+df |>
+  filter(!is.na(v2_gen)) |> 
+  mutate(
+   older_than_60 = case_when(
+     v2_gen %in% c("60代", "70代以上")  ~ "60代以上",
+     TRUE ~ "60代未満"
+   ) 
+  ) |> 
+  group_by(older_than_60) |> 
+  summarise(
+    n = sum(!is.na(v15_critical_shop_attitude)),
+    mean = mean(v15_critical_shop_attitude, na.rm = TRUE),
+    sd = sd(v15_critical_shop_attitude, na.rm = TRUE)
+    )
+  
+```
+## →意見偏りみられず（売店）
+[48]売店が妨げとなるかという意見のばらつきは同程度だが60代以上の平均が高い
+
+```{r}
+df |>
+  filter(!is.na(v2_gen)) |> 
+  mutate(
+   older_than_60 = case_when(
+     v2_gen %in% c("60代", "70代以上")  ~ "60代以上",
+     TRUE ~ "60代未満"
+   ) 
+  ) |> 
+  ggplot(aes(x = v15_critical_photospot_attitude)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("撮影スポットは理想の自然観光の妨げになるか？") +
+  facet_wrap(~ older_than_60)
+```
+```{r}
+df |>
+  filter(!is.na(v2_gen)) |> 
+  mutate(
+   older_than_60 = case_when(
+     v2_gen %in% c("60代", "70代以上")  ~ "60代以上",
+     TRUE ~ "60代未満"
+   ) 
+  ) |> 
+  group_by(older_than_60) |> 
+  summarise(
+    n = sum(!is.na(v15_critical_photospot_attitude)),
+    mean = mean(v15_critical_photospot_attitude, na.rm = TRUE),
+    sd = sd(v15_critical_photospot_attitude, na.rm = TRUE)
+    )
+  
+```
+## →高齢者の意見偏り（撮影スポット）
+
+[49]撮影スポットに関して60代以上の方がばらつきが小さい

@@ -50,4 +50,71 @@ lamda^(x) / factorial(x) * exp(-lamda)
 ```{r}
 df |> count(v14_reason)
 ```
+```{r}
+x <- c(12, 15, 9, 17, 5, 8, 10, 12, 6, 3, 10, 11, 20, 6, 8, 10, 13, 10, 11, 4)
+
+# 標本平均
+mean(x)
+sum(x) / length(x)
+
+# 分散
+var(x)
+sum((x - mean(x))^2) / (length(x) - 1)
+
+# 中央値
+(sort(x)[10] + sort(x)[11] ) / 2
+median(x)
+
+# 最頻値
+x |> table() |> sort() 
+
+```
+
+```{r}
+x <- c(0, 2, 3, 2, 5, 1, 5, 2, 4, 5)
+y <- c(2, 5, 4, 3, 4, 3, 4, 3, 5, 7)
+
+df_practice <- data.frame(
+  x,
+  y
+)
+
+library(tidyverse)
+
+# 散布図
+df_practice |> 
+  ggplot(aes(x = x, y = y)) +
+  geom_point()
+
+# 共分散
+my_cov <- sum(((x - mean(x)) * (y - mean(y)))) / (nrow(df_practice) - 1)
+
+cov(x, y)
+
+
+# 相関係数
+my_cov /(sd(x) * sd(y))
+cor(x, y)
+```
+
+```{r}
+x <- c(1, 5, 6, 7)
+ps <- c(1/5, 1/4, 3/10, 1/4)
+
+# 期待値
+ex <- sum(x * ps)
+
+# 分散
+sum(((x - ex) ** 2) * ps)
+
+df_practice <- 
+  data.frame(
+    x, ps
+  )
+
+df_practice |> 
+  ggplot(aes(x = x, y = ps)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 0:7)
+```
 
