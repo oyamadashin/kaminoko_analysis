@@ -1,37 +1,20 @@
----
-title: "kaminoko_2025_preparation"
-description: "データの前処理"
-format: html
-execute:
-  echo: false
-  freeze: auto
-  warning: false
----
-
-# 準備
-
-## パッケージ読み込み
-
-```{r}
-#| include: false
-
+# パッケージ読み込み----
+  
 library(tidyverse)
 library(patchwork)
 library(corrplot) # 相関行列を求める
-```
-
-## データインポートと結合
-```{r}
 library(janitor) # 変数名をきれいにするためのパッケージ
 
-# 結合前データ読み込み
+
+# データインポートと結合----
+
+## 結合前データ読み込み
 df1 <- read_csv("kaminoko2025_0608.csv") 
 df2 <- read_csv("kaminoko2025_0614-15.csv")
 df3 <- read_csv("kaminoko2025_0719-20.csv")
 
 
-
-# 変数名つけなおし（結合する変数のみ）
+## 変数名つけなおし（結合する変数のみ）----
 df1 <- df1 |> clean_names() # rename()時にエラーが出ないよう変数名をきれいにしておく
 
 df1 <- df1 |> rename(
@@ -62,7 +45,6 @@ df1 <- df1 |> rename(
   v14_bid2_no = q13_3_di2hui_zhi_fani_yi_si_di1hui_zhi_fanwanai,
   v14_reason = q13_4_zhi_fanitakunai_li_you # あとでダミー変数に分解
 )
-
 
 df2 <- df2 |> clean_names() # rename()時にエラーが出ないよう変数名をきれいにしておく
 
@@ -148,14 +130,14 @@ df2 <- df2 |> mutate(across(everything(), as.character))
 df3 <- df3 |> mutate(across(everything(), as.character))
 
 df <- bind_rows(df1, df2, df3)
-```
 
 
-## 再コーディング
 
-### 欠損をNAに
+# 再コーディング----
 
-```{r}
+## 欠損をNAに----
+
+
 # 欠損をすべてNAに置換
 library(stringr) # str_trim()を使うために読み込む
 df <- df |>
@@ -169,12 +151,12 @@ df <- df |>
     )
   )
 
-```
 
 
-### id
 
-```{r}
+## id----
+
+
 
 # 現在のデータの行番号でidを上書き
 df <- df |> 
@@ -183,12 +165,10 @@ df <- df |>
   ) |> 
   relocate(id)  # idを先頭列に移動
 
-```
+
+## date, date_detail----
 
 
-### date, date_detail
-
-```{r}
 # date 日付をファクタ化してレベル設定
 df <- df |> 
   mutate(
@@ -210,12 +190,12 @@ df <- df |>
 
 
 
-```
-
-### v3
 
 
-```{r}
+## v3----
+
+
+
 # v3 北海道内（外）と道内（外）が混じっていたので道内（外）に統一
 df <- df |> 
   mutate(
@@ -225,11 +205,11 @@ df <- df |>
       TRUE ~ v3_hokkaido
     )
   ) 
-```
 
-### v4
 
-```{r}
+## v4----
+
+
 # v4 値がばらばらなので揃える（最大4回目以上）
 df <- df |>
   mutate(
@@ -266,13 +246,13 @@ df <- df |>
     v4_hokkaido_visits = factor(v4_hokkaido_visits, level = c("はじめて", "2回目", "3回目", "4回目以上"))
   ) 
 
-```
 
 
-### v5
+
+## v5----
 
 
-```{r}
+
 # v5 「1人（同行者はいない）」が冗長なので「1人」に変換。また、最大5人以上に統一しよう
 df <- df |> 
   mutate(
@@ -299,12 +279,12 @@ df <- df |>
     v5_companions_cnt = factor(v5_companions_cnt, level = c("1人", "2人", "3人", "4人", "5人以上"))
   ) 
 
-```
 
 
-### v6
 
-```{r}
+## v6----
+
+
 # v6 神の子訪問回数が3回目以上ならすべて「3回目以上」に統一
 df <- df |>
   mutate(
@@ -322,13 +302,13 @@ df <- df |>
     v6_kaminoko_visits = factor(v6_kaminoko_visits, level = c("はじめて", "2回目", "3回目以上"))
   ) 
 
-```
 
 
 
-### v7
 
-```{r}
+## v7----
+
+
 
 others_in_v7 <- c("Facebook", "通りがかり", "お客様案内", "その他(ネット)", "とおりがかりで", "もともと知っていた",
                   "グーグルマップを見て以前から気になっていた", "グーグルマップ", "前々から知っていた。初めての人をドライブに誘った",
@@ -391,10 +371,10 @@ df <- df |>
     "v7_non_companion_info" = "同行者以外から話を聞いて"
   )
 
-```
 
-### v8, v9, v10
-```{r}
+
+## v8, v9, v10----
+
 # 神の子池への期待度、満足度を数値型に変換
 df <- df |> 
   mutate(
@@ -409,20 +389,20 @@ df <- df |>
     v10_kaminoko_silence_satis = as.numeric(v10_kaminoko_silence_satis),
     v10_kaminoko_forest_satis = as.numeric(v10_kaminoko_forest_satis),
     v10_kaminoko_achievement_satis = as.numeric(v10_kaminoko_achievement_satis)
-   ) 
+  ) 
 
-```
 
-### v12
 
-```{r}
+## v12----
+
+
 # 自由回答はない（ほとんどない）ので処理はしない
 # v12のおかしな値（入力時に入れたメモみたいなの）を取り除く
 freaks_in_v12 <- c("その他に丸はされてるが理由は未回答", "日数の？がない", "なかなか来られないので", "近くに来た時に何かあれば")
 
 pat <- str_c(str_escape(freaks_in_v12), collapse = "|")
 df <- df |>
-    mutate(
+  mutate(
     v12_new = v12 |>
       replace_na("") |>
       str_remove_all(regex(pat)) |>
@@ -430,7 +410,7 @@ df <- df |>
       str_replace_all(";{2,}", ";") |>
       str_replace_all("^;|;$", "") |>
       na_if("")
-    )
+  )
 
 
 # v12_newをダミー変数に
@@ -460,12 +440,12 @@ df <- df |>
     "v12_unaware_of_location" = "神の子池が清里町にあると意識していなかった"
   )
 
-```
 
 
-### v13
 
-```{r}
+## v13----
+
+
 # v13 1,2のままだと使いにくいので、カテゴリー名をかえる。
 df <- df |> 
   mutate(
@@ -475,12 +455,12 @@ df <- df |>
       TRUE ~ NA_character_
     )
   )
-```
 
 
-### v14 
 
-```{r}
+## v14----
+
+
 # 初回提示額から「円」を取り除き数値型に変換
 df$v14_bid1_wtp <-  str_remove(df$v14_bid1_wtp,"円") |> as.numeric()
 
@@ -501,37 +481,37 @@ df <- df |>
       v14_bid1_wtp == 500 ~ 300,
       v14_bid1_wtp == 1000 ~ 500,
       TRUE ~ v14_bid1_wtp
-  ) 
-)
-
-```
+    ) 
+  )
 
 
-### v14_reason
 
-```{r}
+
+## v14_reason----
+
+
 # 回答が40くらいしかなく、全体的にばらけているので、ダミー変数にはしない。
 # 分析に使う必要が出てきたら自由記述をカテゴライスするなどする
 df$v14_reason |> 
   unique()
 
-```
 
 
 
-### v14回答整合性チェック
+
+## v14回答整合性チェック----
 
 
 
-```{r}
+
 # 整合性チェック
 table(df$v14_bid1,
       is.na(df$v14_bid2_yes),
       is.na(df$v14_bid2_no))
 
-```
 
-```{r}
+
+
 # CVMの分岐質問であり得ない回答パターンをしているサンプルを抽出
 bidmiss_id_1 <- df |> 
   filter(v14_bid1 == "支払う" & !is.na(v14_bid2_no)) |> 
@@ -556,11 +536,11 @@ bidmiss_id <- rbind(bidmiss_id_1, bidmiss_id_2, bidmiss_id_3, bidmiss_id_4)
 df |> 
   semi_join(bidmiss_id, by = "id") |> 
   select(id, date, questionnaire_no, v14_bid1, v14_bid2_yes, v14_bid2_no)
-```
 
 
-### v14回答パターン変数作成
-```{r}
+
+## v14回答パターン変数作成----
+
 # v14 CVM質問についてyy, yn, ny, nnのパターンを表す変数をつくる
 df <- df |> 
   mutate(
@@ -573,12 +553,12 @@ df <- df |>
     )
   )
 
-```
 
 
-### v15
 
-```{r}
+## v15----
+
+
 
 # 7件法の選択肢を数値に変換する。妨げ度合いを示す変数とする。
 
@@ -603,7 +583,5 @@ df <- df |> mutate(
   )
 )
 
-
-```
 
 

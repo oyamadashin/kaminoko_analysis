@@ -1,12 +1,19 @@
 ---
 title: "kaminoko_2025_GT"
-description: "単純集計用。先に前処理ファイルを実行しておくこと"
+description: "単純集計用"
 format: html
 execute:
   echo: false
   freeze: auto
   warning: false
 ---
+
+# source()
+```{r}
+# 前処理用ファイルをソースとする
+source("kaminoko_2025_preparation.R")
+```
+
 
 ## 実施日
 
