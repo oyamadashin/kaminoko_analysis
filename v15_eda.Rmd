@@ -5,15 +5,17 @@ date: "2026-02-19"
 # v15 (自然志向)のEDA
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+# source()
+```{r preparation}
+# 前処理用ファイルをソースとする
+source("kaminoko_2025_preparation.R")
 ```
 
 
 
-## v15 × 池の要素の満足度
+# v15 × 池の要素の満足度
 
-```{r}
+```{r v15_access-v10_scenery_satis}
 # v15_critical_access_attitude × v10_kaminoko_scenery_satis
 
 df |> 
@@ -26,7 +28,7 @@ df |>
 ```
 相関はみられない
 
-```{r}
+```{r v15_access-v10_scenery_silens}
 # v15_critical_access_attitude × v10_kaminoko_silence_satis
 
 df |> 
@@ -39,7 +41,7 @@ df |>
 ```
 相関見られない
 
-```{r}
+```{r v15_access-v10_forest_satis}
 # v15_critical_access_attitude × v10_kaminoko_forest_satis
 
 df |> 
@@ -54,7 +56,7 @@ df |>
 相関はみられない
 
 
-```{r}
+```{r v15_access-v10_achievement_satis}
 # v15_critical_access_attitude × v10_kaminoko_achievement_satis
 
 df |> 
@@ -68,7 +70,7 @@ df |>
 
 - 微妙に相関があるような… →　相関係数出したらまったく相関なかった
 
-```{r}
+```{r corr(v15-v10)}
 # 面倒なのでいっぺんに相関行列を出してみよう
 m <- df |> 
   select(v15_critical_access_attitude, v15_critical_parking_attitude, v15_critical_crowd_attitude, v15_critical_shop_attitude, v15_critical_photospot_attitude,v10_kaminoko_scenery_satis, v10_kaminoko_silence_satis, v10_kaminoko_forest_satis, v10_kaminoko_achievement_satis) |> 
@@ -83,9 +85,9 @@ corrplot(m)
 [44]自然志向変数と神の子要素満足度には全く相関なし
 
 
-## v15 × 神の子訪問満足度
+# v15 × 神の子訪問満足度
 
-```{r}
+```{r corr(v15-v9)}
 # 面倒なのでいっぺんに相関行列を出してみよう
 m <- df |> 
   select(v15_critical_access_attitude, v15_critical_parking_attitude, v15_critical_crowd_attitude, v15_critical_shop_attitude, v15_critical_photospot_attitude, 
@@ -104,7 +106,7 @@ corrplot(m)
 
 # v15 × 年代
 
-```{r}
+```{r v15_access-v2_gen}
 df |> 
   filter(!is.na(v2_gen) & !is.na(v15_critical_access_attitude)) |> 
   ggplot(aes(x = v15_critical_access_attitude)) +
@@ -116,7 +118,7 @@ df |>
 
 60代と70代以上は広い道路の整備についてどちらでもないという意見が多い。意見の多様性が低いということか？
 
-```{r}
+```{r mean_sd_of(v15_access-by-60over_under)}
 df |>
   filter(!is.na(v2_gen)) |> 
   mutate(
@@ -136,7 +138,7 @@ df |>
 ## →高齢者の意見偏り（広い道路）
 [47]60代以上は広い道路が妨げかという意見の多様性が低い
 
-```{r}
+```{r v15_parking-v2_gen}
 df |> 
   filter(!is.na(v2_gen) & !is.na(v15_critical_parking_attitude)) |> 
   ggplot(aes(x = v15_critical_parking_attitude)) +
@@ -147,7 +149,7 @@ df |>
 ```
 少し傾向が見えにくい
 
-```{r}
+```{r mean_sd_of(v15_parkin-by-60over_under)}
 df |>
   filter(!is.na(v2_gen)) |> 
   mutate(
@@ -165,7 +167,7 @@ df |>
   
 ```
 
-```{r}
+```{r v15_crowd-v2_gen}
 df |> 
   filter(!is.na(v2_gen) & !is.na(v15_critical_crowd_attitude)) |> 
   ggplot(aes(x = v15_critical_crowd_attitude)) +
@@ -178,7 +180,7 @@ df |>
 
 
 
-```{r}
+```{r v15_crowd-60over_under}
 df |>
   filter(!is.na(v2_gen)) |> 
   mutate(
@@ -193,7 +195,7 @@ df |>
   xlab("観光客の多さは理想の自然観光の妨げになるか？") +
   facet_wrap(~ older_than_60)
 ```
-```{r}
+```{r mean_sd_of(v15_crowd-by-60over_under)}
 df |>
   filter(!is.na(v2_gen)) |> 
   mutate(
@@ -213,7 +215,7 @@ df |>
 ## →高齢者の意見偏り（観光客）
 [46]60代以上は観光客が妨げかという意見の多様性が低い
 
-```{r}
+```{r v15_shop-v2_gen}
 df |>
   filter(!is.na(v2_gen)) |> 
   mutate(
@@ -228,7 +230,7 @@ df |>
   xlab("売店は理想の自然観光の妨げになるか？") +
   facet_wrap(~ older_than_60)
 ```
-```{r}
+```{r mean_sd_of(v15_shop-by-60over_under)}
 df |>
   filter(!is.na(v2_gen)) |> 
   mutate(
@@ -248,7 +250,7 @@ df |>
 ## →意見偏りみられず（売店）
 [48]売店が妨げとなるかという意見のばらつきは同程度だが60代以上の平均が高い
 
-```{r}
+```{r v15_photospot-v2_gen}
 df |>
   filter(!is.na(v2_gen)) |> 
   mutate(
@@ -263,7 +265,7 @@ df |>
   xlab("撮影スポットは理想の自然観光の妨げになるか？") +
   facet_wrap(~ older_than_60)
 ```
-```{r}
+```{r mean_sd_of(v15_photospot-by-60over_under)}
 df |>
   filter(!is.na(v2_gen)) |> 
   mutate(
@@ -283,3 +285,234 @@ df |>
 ## →高齢者の意見偏り（撮影スポット）
 
 [49]撮影スポットに関して60代以上の方がばらつきが小さい
+
+
+# v15 × 性別
+
+```{r v15_access-v1_sex}
+df |> 
+  filter(!is.na(v1_sex) & !is.na(v15_critical_access_attitude)) |> 
+  ggplot(aes(x = v15_critical_access_attitude)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("広い道路は理想の自然観光の妨げになるか？") +
+  facet_wrap(~ v1_sex)
+```
+
+大きなちがいはみられない。
+
+```{r v15_parking-v1_sex}
+df |> 
+  filter(!is.na(v1_sex) & !is.na(v15_critical_parking_attitude)) |> 
+  ggplot(aes(x = v15_critical_parking_attitude)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("広い駐車場は理想の自然観光の妨げになるか？") +
+  facet_wrap(~ v1_sex)
+```
+
+女性は「どちらでもない」で大きな落差
+→　平均・標準偏差のちがいもみてみよう
+
+
+```{r r v15_parking-v1_sex_barplot}
+df |> 
+  filter(!is.na(v1_sex) & !is.na(v15_critical_crowd_attitude)) |> 
+  ggplot(aes(x = v15_critical_access_attitude)) +
+  geom_bar() +
+  scale_x_continuous(breaks = 1:7) + 
+  facet_wrap(~v1_sex)
+```
+度数分布表でも同様の傾向
+
+## →広い駐車場は女性に偏りみられる
+
+
+
+```{r v15_crowd-v1_sex}
+df |> 
+  filter(!is.na(v1_sex) & !is.na(v15_critical_crowd_attitude)) |> 
+  ggplot(aes(x = v15_critical_crowd_attitude)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("広い駐車場は理想の自然観光の妨げになるか？") +
+  facet_wrap(~ v1_sex)
+```
+
+男女差みられず
+
+```{r v15_shop-v1_sex}
+df |> 
+  filter(!is.na(v1_sex) & !is.na(v15_critical_shop_attitude)) |> 
+  ggplot(aes(x = v15_critical_shop_attitude)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("売店は理想の自然観光の妨げになるか？") +
+  facet_wrap(~ v1_sex)
+```
+
+男女差見られず
+
+
+```{r v15_shop-v1_photospot}
+df |> 
+  filter(!is.na(v1_sex) & !is.na(v15_critical_photospot_attitude)) |> 
+  ggplot(aes(x = v15_critical_photospot_attitude)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("撮影スポットは理想の自然観光の妨げになるか？") +
+  facet_wrap(~ v1_sex)
+```
+
+男女差みられない
+
+
+# v15 × 道内・外
+
+```{r v15_access-v3_hokkaido}
+df |> 
+  filter(!is.na(v3_hokkaido) & !is.na(v15_critical_access_attitude)) |> 
+  ggplot(aes(x = v15_critical_access_attitude)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("広い道路は理想の自然観光の妨げになるか？") +
+  facet_wrap(~ v3_hokkaido)
+```
+
+```{r v15_access-v3_hokkaido_barplot}
+df |> 
+  filter(!is.na(v3_hokkaido) & !is.na(v15_critical_access_attitude)) |> 
+  ggplot(aes(x = v15_critical_access_attitude)) +
+  geom_bar() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("広い道路は理想の自然観光の妨げになるか？") +
+  facet_wrap(~ v3_hokkaido)
+```
+
+道内の方がばらつきがみられる
+
+## →[57]広い道路妨げは道内にばらつきみられる
+
+
+```{r v15_parking-v3_hokkaido}
+df |> 
+  filter(!is.na(v3_hokkaido) & !is.na(v15_critical_parking_attitude)) |> 
+  ggplot(aes(x = v15_critical_parking_attitude)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("広い駐車場は理想の自然観光の妨げになるか？") +
+  facet_wrap(~ v3_hokkaido)
+```
+
+
+```{r v15_parking-v3_hokkaido_barplot}
+df |> 
+  filter(!is.na(v3_hokkaido) & !is.na(v15_critical_parking_attitude)) |> 
+  ggplot(aes(x = v15_critical_parking_attitude)) +
+  geom_bar() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("広い駐車場は理想の自然観光の妨げになるか？") +
+  facet_wrap(~ v3_hokkaido)
+```
+
+道内の方が「全く妨げない」あたりに偏っているようにみえる
+
+## →[58]広い駐車場は道内が「全く妨げない」に偏る
+
+
+```{r v15_crowd-v3_hokkaido}
+df |> 
+  filter(!is.na(v3_hokkaido) & !is.na(v15_critical_crowd_attitude)) |> 
+  ggplot(aes(x = v15_critical_crowd_attitude)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("他の観光客は理想の自然観光の妨げになるか？") +
+  facet_wrap(~ v3_hokkaido)
+```
+
+
+```{r v15_crowd-v3_hokkaido_barplot}
+df |> 
+  filter(!is.na(v3_hokkaido) & !is.na(v15_critical_crowd_attitude)) |> 
+  ggplot(aes(x = v15_critical_crowd_attitude)) +
+  geom_bar() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("他の観光客は理想の自然観光の妨げになるか？") +
+  facet_wrap(~ v3_hokkaido)
+```
+
+道外の方が「妨げる」に偏っているように見える
+
+## →[59]他訪問者は道外の方が「妨げる」に偏る
+
+```{r v15_shop-v3_hokkaido}
+df |> 
+  filter(!is.na(v3_hokkaido) & !is.na(v15_critical_shop_attitude)) |> 
+  ggplot(aes(x = v15_critical_shop_attitude)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("売店は理想の自然観光の妨げになるか？") +
+  facet_wrap(~ v3_hokkaido)
+```
+
+```{r v15_shop-v3_hokkaido_barplot}
+df |> 
+  filter(!is.na(v3_hokkaido) & !is.na(v15_critical_shop_attitude)) |> 
+  ggplot(aes(x = v15_critical_shop_attitude)) +
+  geom_bar() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("売店は理想の自然観光の妨げになるか？") +
+  facet_wrap(~ v3_hokkaido)
+```
+
+売店は道内で「全く妨げにならない」がややみられるがあまり明確でない
+
+```{r v15_photo-v3_hokkaido}
+df |> 
+  filter(!is.na(v3_hokkaido) & !is.na(v15_critical_photospot_attitude)) |> 
+  ggplot(aes(x = v15_critical_photospot_attitude)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("撮影スポットは理想の自然観光の妨げになるか？") +
+  facet_wrap(~ v3_hokkaido)
+```
+
+```{r v15_photo-v3_hokkaido-barplot}
+df |> 
+  filter(!is.na(v3_hokkaido) & !is.na(v15_critical_photospot_attitude)) |> 
+  ggplot(aes(x = v15_critical_photospot_attitude)) +
+  geom_bar() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("撮影スポットは理想の自然観光の妨げになるか？") +
+  facet_wrap(~ v3_hokkaido)
+```
+
+道内の方が妨げないにやや偏っている気がするが、それほど顕著ではない
+
+
+# [略]v15×世代×道内外
+サンプルが少なくなりすぎるせいかあまり傾向はみられない
+
+```{r v15_crowd-v3_hokkaido}
+df |> 
+  filter(!is.na(v3_hokkaido) & !is.na(v15_critical_crowd_attitude)) |> 
+  ggplot(aes(x = v15_critical_crowd_attitude)) +
+  geom_bar() +
+  scale_x_continuous(breaks = 1:7) +
+  scale_y_continuous(breaks = seq(0, 12, by= 3)) + 
+  xlab("他の訪問者は理想の自然観光の妨げになるか？") +
+  facet_grid(v2_gen~ v3_hokkaido)
+```
+
+# v15 × wtp
+
+```{r v15_photo-v3_hokkaido-barplot}
+df |> 
+  filter(!is.na(yes_no_pattern) & !is.na(v15_critical_access_attitude)) |> 
+  ggplot(aes(x = v15_critical_access_attitude)) +
+  geom_bar() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("広い道路は理想の自然観光の妨げになるか？") +
+  facet_grid(v14_bid1_wtp~yes_no_pattern)
+```
+
