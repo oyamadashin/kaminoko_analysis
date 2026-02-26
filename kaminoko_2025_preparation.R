@@ -554,7 +554,29 @@ df <- df |>
   )
 
 
-
+## wtp_interval----
+# 最終的な支払同意金額の範囲を示す変数を作る
+df <- df |> 
+  mutate(
+    wtp_interval = case_when(
+      v14_bid1_wtp == 100 & yes_no_pattern == "nn" ~ "0-50",
+      v14_bid1_wtp == 100 & yes_no_pattern == "ny" ~ "50-100",
+      v14_bid1_wtp == 100 & yes_no_pattern == "yn" ~ "100-300",
+      v14_bid1_wtp == 100 & yes_no_pattern == "yy" ~ "300-",
+      v14_bid1_wtp == 300 & yes_no_pattern == "nn" ~ "0-300",
+      v14_bid1_wtp == 300 & yes_no_pattern == "ny" ~ "100-300",
+      v14_bid1_wtp == 300 & yes_no_pattern == "yn" ~ "300-500",
+      v14_bid1_wtp == 300 & yes_no_pattern == "yy" ~ "500-",
+      v14_bid1_wtp == 500 & yes_no_pattern == "nn" ~ "0-500",
+      v14_bid1_wtp == 500 & yes_no_pattern == "ny" ~ "300-500",
+      v14_bid1_wtp == 500 & yes_no_pattern == "yn" ~ "500-1000",
+      v14_bid1_wtp == 500 & yes_no_pattern == "yy" ~ "1000-",
+      v14_bid1_wtp == 1000 & yes_no_pattern == "nn" ~ "0-1000",
+      v14_bid1_wtp == 1000 & yes_no_pattern == "ny" ~ "500-1000",
+      v14_bid1_wtp == 1000 & yes_no_pattern == "yn" ~ "1000-1500",
+      v14_bid1_wtp == 1000 & yes_no_pattern == "yy" ~ "1500-"
+    )
+  ) 
 
 ## v15----
 

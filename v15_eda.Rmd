@@ -506,7 +506,62 @@ df |>
 
 # v15 × wtp
 
-```{r v15_photo-v3_hokkaido-barplot}
+## [準備]v15 × 初回提示額
+
+```{r v15_access-v14bid1wtp-barplot}
+df |> 
+  filter(!is.na(v15_critical_access_attitude)) |> 
+  ggplot(aes(x = v15_critical_access_attitude, y = after_stat(prop), group = 1)) +
+  geom_bar() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("広い道路は理想の自然観光の妨げになるか？") +
+  facet_wrap(~ v14_bid1_wtp)
+```
+
+```{r v15_parking-v14bid1wtp-barplot}
+df |> 
+  filter(!is.na(v15_critical_parking_attitude)) |> 
+  ggplot(aes(x = v15_critical_parking_attitude, y = after_stat(prop), group = 1)) +
+  geom_bar() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("広い駐車場は理想の自然観光の妨げになるか？") +
+  facet_wrap(~ v14_bid1_wtp)
+```
+
+```{r v15_crowd-v14bid1wtp-barplot}
+df |> 
+  filter(!is.na(v15_critical_crowd_attitude)) |> 
+  ggplot(aes(x = v15_critical_crowd_attitude, y = after_stat(prop), group = 1)) +
+  geom_bar() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("他の訪問者は理想の自然観光の妨げになるか？") +
+  facet_wrap(~ v14_bid1_wtp)
+```
+
+```{r v15_shop-v14bid1wtp-barplot}
+df |> 
+  filter(!is.na(v15_critical_shop_attitude)) |> 
+  ggplot(aes(x = v15_critical_shop_attitude, y = after_stat(prop), group = 1)) +
+  geom_bar() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("売店は理想の自然観光の妨げになるか？") +
+  facet_wrap(~ v14_bid1_wtp)
+```
+```{r v15_photo-v14bid1wtp-barplot}
+df |> 
+  filter(!is.na(v15_critical_photospot_attitude)) |> 
+  ggplot(aes(x = v15_critical_photospot_attitude, y = after_stat(prop), group = 1)) +
+  geom_bar() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("撮影スポットは理想の自然観光の妨げになるか？") +
+  facet_wrap(~ v14_bid1_wtp)
+```
+
+### →初回提示額で分布が大きく異なるということはなさそう
+
+## v15 × 初回提示額 × ynパターン
+
+```{r v15_access-v14bid1wtp-yn_pattern-barplot}
 df |> 
   filter(!is.na(yes_no_pattern) & !is.na(v15_critical_access_attitude)) |> 
   ggplot(aes(x = v15_critical_access_attitude)) +
@@ -516,3 +571,51 @@ df |>
   facet_grid(v14_bid1_wtp~yes_no_pattern)
 ```
 
+なんとなく、yyの中に「妨げる」という人が多い気がする。
+
+
+```{r v15_parking-v14bid1wtp-yn_pattern-barplot}
+df |> 
+  filter(!is.na(yes_no_pattern) & !is.na(v15_critical_parking_attitude)) |> 
+  ggplot(aes(x = v15_critical_parking_attitude)) +
+  geom_bar() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("駐車場は理想の自然観光の妨げになるか？") +
+  facet_grid(v14_bid1_wtp~yes_no_pattern)
+```
+
+```{r v15_crowd-v14bid1wtp-yn_pattern-barplot}
+df |> 
+  filter(!is.na(yes_no_pattern) & !is.na(v15_critical_crowd_attitude)) |> 
+  ggplot(aes(x = v15_critical_crowd_attitude)) +
+  geom_bar() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("他の訪問客は理想の自然観光の妨げになるか？") +
+  facet_grid(v14_bid1_wtp~yes_no_pattern)
+```
+
+「他の訪問客」の場合、yyグループで「強く妨げる」と考える人がやや減る気がする。逆に、nnグループで「強く妨げる」が増えている？
+
+```{r v15_shop-v14bid1wtp-yn_pattern-barplot}
+df |> 
+  filter(!is.na(yes_no_pattern) & !is.na(v15_critical_shop_attitude)) |> 
+  ggplot(aes(x = v15_critical_shop_attitude)) +
+  geom_bar() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("売店は理想の自然観光の妨げになるか？") +
+  facet_grid(v14_bid1_wtp~yes_no_pattern)
+```
+
+```{r v15_photo-v14bid1wtp-yn_pattern-barplot}
+df |> 
+  filter(!is.na(yes_no_pattern) & !is.na(v15_critical_photospot_attitude)) |> 
+  ggplot(aes(x = v15_critical_photospot_attitude)) +
+  geom_bar() +
+  scale_x_continuous(breaks = 1:7) +
+  xlab("撮影スポットは理想の自然観光の妨げになるか？") +
+  facet_grid(v14_bid1_wtp~yes_no_pattern)
+```
+
+### → yyだと「妨げ」回答がやや多い？
+
+# TODO wtp_intervalを使った分析
