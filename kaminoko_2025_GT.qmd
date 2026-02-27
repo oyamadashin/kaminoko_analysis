@@ -784,9 +784,193 @@ df |>
   geom_bar()
 ```
 
+## WTP質問欠損パターン
+
 # TODO
-この欠損パターンを分けてみよう。
-あと、nnパターンの人の場合、「0-300」とか「0-1000」とするのが良いかどうかは微妙かも。
+このあたりは入力再チェックが終わるまで解釈は控えよう。
+
+### WTP質問を2問とも適切に回答
+
+```{r full_wtp_right-date}
+# WTP質問を2問とも適切に回答人
+df |> 
+  group_by(date) |> 
+  summarise(
+    prop = mean(full_wtp_right)
+  ) |> 
+  ggplot(aes(x = date, y = prop)) +
+  geom_col()
+
+```
+```{r full_wtp_right-v2_gen}
+df |> 
+  filter(!is.na(v2_gen)) |> 
+  group_by(v2_gen) |> 
+  summarise(
+    prop = mean(full_wtp_right)
+  ) |> 
+  ggplot(aes(x = v2_gen, y = prop)) +
+  geom_col()
+```
+```{r full_wtp_right-v2_gen}
+df |> 
+  filter(!is.na(v2_gen)) |> 
+  group_by(v2_gen, date) |> 
+  summarise(
+    prop = mean(full_wtp_right)
+  ) |> 
+  ggplot(aes(x = v2_gen, y = prop)) +
+  geom_col() +
+  facet_wrap(~date)
+```
+
+### WTP2問目質問を両方回答
+
+```{r bid2_both_answer-date}
+# WTP2問目質問を両方回答している人
+df |> 
+  group_by(date) |> 
+  summarise(
+    prop = mean(bid2_both_answer)
+  ) |> 
+  ggplot(aes(x = date, y = prop)) +
+  geom_col()
+```
+
+```{r bid2_both_answer-v2_gen}
+# WTP2問目質問を両方回答している人
+df |> 
+  filter(!is.na(v2_gen)) |> 
+  group_by(v2_gen) |> 
+  summarise(
+    prop = mean(bid2_both_answer)
+  ) |> 
+  ggplot(aes(x = v2_gen, y = prop)) +
+  geom_col()
+```
+
+```{r bid2_both_answer-v2_gen-date}
+# WTP2問目質問を両方回答している人
+df |> 
+  filter(!is.na(v2_gen)) |> 
+  group_by(v2_gen, date) |> 
+  summarise(
+    prop = mean(bid2_both_answer)
+  ) |> 
+  ggplot(aes(x = v2_gen, y = prop)) +
+  geom_col() +
+  facet_wrap(~date)
+```
+
+### 1回目未回答・2回目回答
+
+```{r bid1_missing_only-date}
+# WTP質問で1問目は未回答、2問目は正しく回答
+df |> 
+  group_by(date) |> 
+  summarise(
+    prop = mean(bid1_missing_only)
+  ) |> 
+  ggplot(aes(x = date, y = prop)) +
+  geom_col()
+```
+
+```{r bid1_missing_only-v2_gen}
+# WTP質問で1問目は未回答、2問目は正しく回答
+df |> 
+  filter(!is.na(v2_gen)) |> 
+  group_by(v2_gen) |> 
+  summarise(
+    prop = mean(bid1_missing_only)
+  ) |> 
+  ggplot(aes(x = v2_gen, y = prop)) +
+  geom_col()
+```
+```{r bid1_missing_only-v2_gen-date}
+# WTP質問で1問目は未回答、2問目は正しく回答
+df |> 
+  filter(!is.na(v2_gen)) |> 
+  group_by(v2_gen, date) |> 
+  summarise(
+    prop = mean(bid1_missing_only)
+  ) |> 
+  ggplot(aes(x = v2_gen, y = prop)) +
+  geom_col() +
+  facet_wrap(~date)
+```
+
+### 1回目未回答・2回目誤回答
+
+```{r bid1_none_bid2_both-date}
+# WTP質問で、1問目は未回答、2問目は両方回答
+df |> 
+  group_by(date) |> 
+  summarise(
+    prop = mean(bid1_none_bid2_both)
+  ) |> 
+  ggplot(aes(x = date, y = prop)) +
+  geom_col()
+```
+
+```{r bid1_none_bid2_both}
+# WTP質問で、1問目は未回答、2問目は両方回答
+df |> 
+  filter(!is.na(v2_gen)) |> 
+  group_by(v2_gen) |> 
+  summarise(
+    prop = mean(bid1_none_bid2_both)
+  ) |> 
+  ggplot(aes(x = v2_gen, y = prop)) +
+  geom_col()
+```
+
+```{r bid1_none_bid2_both-date}
+# WTP質問で、1問目は未回答、2問目は両方回答
+df |> 
+  filter(!is.na(v2_gen)) |> 
+  group_by(v2_gen, date) |> 
+  summarise(
+    prop = mean(bid1_none_bid2_both)
+  ) |> 
+  ggplot(aes(x = v2_gen, y = prop)) +
+  geom_col() +
+  facet_wrap(~date)
+```
+### 2問とも未回答
+
+```{r full_wtp_missing-date}
+df |> 
+  group_by(date) |> 
+  summarise(
+    prop = mean(full_wtp_missing)
+  ) |> 
+  ggplot(aes(x = date, y = prop)) +
+  geom_col()
+```
+
+```{r full_wtp_missing}
+# WTP質問で、1問目も2問目も未回答
+df |> 
+  filter(!is.na(v2_gen)) |> 
+  group_by(v2_gen) |> 
+  summarise(
+    prop = mean(full_wtp_missing)
+  ) |> 
+  ggplot(aes(x = v2_gen, y = prop)) +
+  geom_col()
+```
+```{r full_wtp_missing-date}
+# WTP質問で、1問目も2問目も未回答
+df |> 
+  filter(!is.na(v2_gen)) |> 
+  group_by(v2_gen, date) |> 
+  summarise(
+    prop = mean(full_wtp_missing)
+  ) |> 
+  ggplot(aes(x = v2_gen, y = prop)) +
+  geom_col() +
+  facet_wrap(~date)
+```
 
 ### v15(自然志向の傾向)
 
