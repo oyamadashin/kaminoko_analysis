@@ -1,0 +1,33 @@
+---
+title: "practice"
+output: html_document
+date: "2026-03-02"
+# 思いついたコードを書くための場所
+---
+
+# source()
+```{r}
+# 前処理用ファイルをソースとする
+source("kaminoko_2025_preparation.R")
+```
+
+
+```{r}
+df |> 
+  filter(!is.na(v2_gen)) |> 
+  select(v2_gen) |> 
+  table()
+```
+
+```{r}
+df |> 
+  filter(!is.na(v6_kaminoko_visits)) |> 
+  mutate(
+    kaminoko_dummy = case_when(
+      v6_kaminoko_visits == "はじめて" ~ "はじめて",
+      v6_kaminoko_visits == "2回目" | v6_kaminoko_visits == " 3回目以上" ~ "2回目以上",
+      TRUE ~ v6_kaminoko_visits
+    )
+  ) |> select(kaminoko_dummy)
+```
+

@@ -618,4 +618,47 @@ df |>
 
 ### → yyだと「妨げ」回答がやや多い？
 
-# TODO wtp_intervalを使った分析
+## v15 × wtp_interval
+
+```{r wtp_interval-v15_access}
+df |> 
+  filter(!is.na(wtp_interval)) |> 
+  ggplot(aes(x = v15_critical_access_attitude)) +
+  geom_bar() +
+  facet_wrap(~ wtp_interval)
+```
+
+```{r wtp_interval-v15_parking}
+df |> 
+  filter(!is.na(wtp_interval)) |> 
+  ggplot(aes(x = v15_critical_parking_attitude)) +
+  geom_bar() +
+  facet_wrap(~ wtp_interval)
+```
+
+```{r wtp_interval-v15_crowd}
+df |> 
+  filter(!is.na(wtp_interval)) |> 
+  ggplot(aes(x = v15_critical_crowd_attitude)) +
+  geom_bar() +
+  facet_wrap(~ wtp_interval)
+```
+
+```{r wtp_interval-v15_shop}
+df |> 
+  filter(!is.na(wtp_interval)) |> 
+  ggplot(aes(x = v15_critical_shop_attitude)) +
+  geom_bar() +
+  facet_wrap(~ wtp_interval)
+```
+
+
+```{r wtp_interval-v15_photo}
+df |> 
+  filter(!is.na(wtp_interval)) |> 
+  ggplot(aes(x = v15_critical_photospot_attitude)) +
+  geom_bar() +
+  facet_wrap(~ wtp_interval)
+```
+
+### →とくに関連性は見当たらない

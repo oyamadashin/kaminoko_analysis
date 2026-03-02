@@ -1,0 +1,463 @@
+---
+title: "v12_eda"
+output: html_document
+date: "2026-03-02"
+# v12(住民との交流意図に関するEDA)
+---
+
+# source()
+```{r preparation}
+# 前処理用ファイルをソースとする
+source("kaminoko_2025_preparation.R")
+```
+
+
+# 道内外での傾向の違い
+
+```{r v3-v12}
+df |> 
+  filter(!is.na(v3_hokkaido)) |> 
+  group_by(v3_hokkaido) |> 
+  summarise(
+    across(
+      c(v12_interact_by_event, v12_interact_by_market, v12_interact_by_guesthouse, v12_unwilling_to_interact, v12_unaware_of_location),
+      ~ mean(.x, na.rm = TRUE)
+    )
+      ) |> 
+  pivot_longer(
+    cols = -v3_hokkaido,
+    names_to = "variable",
+    values_to = "mean"
+  ) |> 
+  ggplot(aes(x = mean, y = variable)) +
+  geom_col() +
+  coord_cartesian(xlim = c(0, 1)) +
+  facet_wrap(~ v3_hokkaido)
+```
+道内の方がイベントで関わりたいという意向が強い。
+[60] 道外は清里町に神の子池があると知らなかった人がやや多い。
+
+
+
+```{r v1_sex-v12}
+df |> 
+  filter(!is.na(v1_sex)) |> 
+  group_by(v1_sex) |> 
+  summarise(
+    across(
+      c(v12_interact_by_event, v12_interact_by_market, v12_interact_by_guesthouse, v12_unwilling_to_interact, v12_unaware_of_location),
+      ~ mean(.x, na.rm = TRUE)
+    )
+      ) |> 
+  pivot_longer(
+    cols = -v1_sex,
+    names_to = "variable",
+    values_to = "mean"
+  ) |> 
+  ggplot(aes(x = mean, y = variable)) +
+  geom_col() +
+  coord_cartesian(xlim = c(0, 1)) +
+  facet_wrap(~ v1_sex)
+```
+[61]男性の方が「交流したくない」人が多め
+
+
+
+```{r v1_sex-v3_hokkaido-v12}
+df |> 
+  filter(!is.na(v1_sex) & !is.na(v3_hokkaido)) |> 
+  group_by(v1_sex, v3_hokkaido) |> 
+  summarise(
+    across(
+      c(v12_interact_by_event, v12_interact_by_market, v12_interact_by_guesthouse, v12_unwilling_to_interact, v12_unaware_of_location),
+      ~ mean(.x, na.rm = TRUE)
+    )
+      ) |> 
+  pivot_longer(
+    cols = -c(v1_sex, v3_hokkaido),
+    names_to = "variable",
+    values_to = "mean"
+  ) |> 
+  ggplot(aes(x = mean, y = variable)) +
+  geom_col() +
+  coord_cartesian(xlim = c(0, 1)) +
+  facet_grid(v3_hokkaido~ v1_sex)
+```
+基本的に、性別と道内外は交流意図に独立して影響する傾向。
+ただし、直売で交流する意図については道外の男性がもっとも低い
+
+[62]直売での交流意図は道外男性がもっとも弱い
+
+
+```{r v1_sex-v3_hokkaido-v12-by_count}
+df |> 
+  filter(!is.na(v1_sex) & !is.na(v3_hokkaido)) |> 
+  group_by(v1_sex, v3_hokkaido) |> 
+  summarise(
+    across(
+      c(v12_interact_by_event, v12_interact_by_market, v12_interact_by_guesthouse, v12_unwilling_to_interact, v12_unaware_of_location),
+      ~ sum(.x, na.rm = TRUE)
+    )
+      ) |> 
+  pivot_longer(
+    cols = -c(v1_sex, v3_hokkaido),
+    names_to = "variable",
+    values_to = "count"
+  ) |> 
+  ggplot(aes(x = count, y = variable)) +
+  geom_col() +
+  facet_grid(v3_hokkaido~ v1_sex)
+```
+度数表示。極端にサンプルが少ないグリッドはない
+
+
+# 神の子訪問回数による傾向の違い
+
+```{r v6-v12}
+df |> 
+  filter(!is.na(v6_kaminoko_visits)) |> 
+  group_by(v6_kaminoko_visits) |> 
+  summarise(
+    across(
+      c(v12_interact_by_event, v12_interact_by_market, v12_interact_by_guesthouse, v12_unwilling_to_interact, v12_unaware_of_location),
+      ~ mean(.x, na.rm = TRUE)
+    )
+      ) |> 
+  pivot_longer(
+    cols = -v6_kaminoko_visits,
+    names_to = "variable",
+    values_to = "mean"
+  ) |> 
+  ggplot(aes(x = mean, y = variable)) +
+  geom_col() +
+  coord_cartesian(xlim = c(0, 1)) +
+  facet_wrap(~ v6_kaminoko_visits)
+```
+[63]神の子訪問回数が多いほどイベントでの交流意図が強い
+
+```{r v6-v12-bycount}
+df |> 
+  filter(!is.na(v6_kaminoko_visits)) |> 
+  group_by(v6_kaminoko_visits) |> 
+  summarise(
+    across(
+      c(v12_interact_by_event, v12_interact_by_market, v12_interact_by_guesthouse, v12_unwilling_to_interact, v12_unaware_of_location),
+      ~ sum(.x, na.rm = TRUE)
+    )
+      ) |> 
+  pivot_longer(
+    cols = -v6_kaminoko_visits,
+    names_to = "variable",
+    values_to = "count"
+  ) |> 
+  ggplot(aes(x = count, y = variable)) +
+  geom_col() +
+  facet_wrap(~ v6_kaminoko_visits)
+```
+3回目以上はサンプルがすかすかなので注意。
+
+```{r v6-v12-bycount_first-second-comparison-count}
+df |> 
+  filter(!is.na(v6_kaminoko_visits)) |> 
+  mutate(
+    kaminoko_dummy = case_when(
+      v6_kaminoko_visits == "はじめて" ~ "はじめて",
+      v6_kaminoko_visits == "2回目" | v6_kaminoko_visits == "3回目以上" ~ "2回目以上"
+    )
+  ) |> 
+  group_by(kaminoko_dummy) |> 
+  summarise(
+    across(
+      c(v12_interact_by_event, v12_interact_by_market, v12_interact_by_guesthouse, v12_unwilling_to_interact, v12_unaware_of_location),
+      ~ sum(.x, na.rm = TRUE)
+    )
+      ) |> 
+  pivot_longer(
+    cols = -kaminoko_dummy,
+    names_to = "variable",
+    values_to = "count"
+  ) |> 
+  ggplot(aes(x = count, y = variable)) +
+  geom_col() +
+  facet_wrap(~ kaminoko_dummy)
+```
+2回目と3回目以上を一緒にしてみた
+
+```{r v6-v12-bycount_first-second-comparison}
+df |> 
+  filter(!is.na(v6_kaminoko_visits)) |> 
+  mutate(
+    kaminoko_dummy = case_when(
+      v6_kaminoko_visits == "はじめて" ~ "はじめて",
+      v6_kaminoko_visits == "2回目" | v6_kaminoko_visits == "3回目以上" ~ "2回目以上"
+    )
+  ) |> 
+  group_by(kaminoko_dummy) |> 
+  summarise(
+    across(
+      c(v12_interact_by_event, v12_interact_by_market, v12_interact_by_guesthouse, v12_unwilling_to_interact, v12_unaware_of_location),
+      ~ mean(.x, na.rm = TRUE)
+    )
+      ) |> 
+  pivot_longer(
+    cols = -kaminoko_dummy,
+    names_to = "variable",
+    values_to = "mean"
+  ) |> 
+  ggplot(aes(x = mean, y = variable)) +
+  geom_col() +
+  facet_wrap(~ kaminoko_dummy)
+```
+[67]神の子訪問2回目以上だとイベントで交流したいが多くなる
+[68]神の子訪問2回目以上だと、清里町だと気づかなかったは大幅に減る
+
+
+```{r v1_sex-v6-v12}
+df |> 
+  filter(!is.na(v1_sex) &!is.na(v6_kaminoko_visits)) |> 
+  group_by(v1_sex, v6_kaminoko_visits) |> 
+  summarise(
+    across(
+      c(v12_interact_by_event, v12_interact_by_market, v12_interact_by_guesthouse, v12_unwilling_to_interact, v12_unaware_of_location),
+      ~ mean(.x, na.rm = TRUE)
+    )
+      ) |> 
+  pivot_longer(
+    cols = -c(v1_sex, v6_kaminoko_visits),
+    names_to = "variable",
+    values_to = "mean"
+  ) |> 
+  ggplot(aes(x = mean, y = variable)) +
+  geom_col() +
+  coord_cartesian(xlim = c(0, 1)) +
+  facet_grid(v1_sex~ v6_kaminoko_visits)
+```
+
+[64]神の子訪問回数が多いと男性はイベントでの交流意図が強くなる
+[65]神の子訪問回数が多いと男性は直売での交流意図が強くなる
+
+```{r v1_sex-v6-v12-bycount}
+df |> 
+  filter(!is.na(v1_sex) &!is.na(v6_kaminoko_visits)) |> 
+  group_by(v1_sex, v6_kaminoko_visits) |> 
+  summarise(
+    across(
+      c(v12_interact_by_event, v12_interact_by_market, v12_interact_by_guesthouse, v12_unwilling_to_interact, v12_unaware_of_location),
+      ~ sum(.x, na.rm = TRUE)
+    )
+      ) |> 
+  pivot_longer(
+    cols = -c(v1_sex, v6_kaminoko_visits),
+    names_to = "variable",
+    values_to = "count"
+  ) |> 
+  ggplot(aes(x = count, y = variable)) +
+  geom_col() +
+  facet_grid(v1_sex~ v6_kaminoko_visits)
+```
+[66]神の子訪問3回目以上はサンプル数がかなり少ないことに注意
+
+
+```{r v1_sex-v6-v12-bycount-first-second-comparison}
+df |> 
+  filter(!is.na(v1_sex) &!is.na(v6_kaminoko_visits)) |> 
+  mutate(
+    kaminoko_dummy = case_when(
+      v6_kaminoko_visits == "はじめて" ~ "はじめて",
+      v6_kaminoko_visits == "2回目" | v6_kaminoko_visits == "3回目以上" ~ "2回目以上"
+    )
+  ) |> 
+  group_by(v1_sex, kaminoko_dummy) |> 
+  summarise(
+    across(
+      c(v12_interact_by_event, v12_interact_by_market, v12_interact_by_guesthouse, v12_unwilling_to_interact, v12_unaware_of_location),
+      ~ sum(.x, na.rm = TRUE)
+    )
+      ) |> 
+  pivot_longer(
+    cols = -c(v1_sex, kaminoko_dummy),
+    names_to = "variable",
+    values_to = "count"
+  ) |> 
+  ggplot(aes(x = count, y = variable)) +
+  geom_col() +
+  facet_grid(v1_sex~ kaminoko_dummy)
+```
+
+```{r v1_sex-v6-v12-first-second-comparison}
+df |> 
+  filter(!is.na(v1_sex) &!is.na(v6_kaminoko_visits)) |> 
+  mutate(
+    kaminoko_dummy = case_when(
+      v6_kaminoko_visits == "はじめて" ~ "はじめて",
+      v6_kaminoko_visits == "2回目" | v6_kaminoko_visits == "3回目以上" ~ "2回目以上"
+    )
+  ) |> 
+  group_by(v1_sex, kaminoko_dummy) |> 
+  summarise(
+    across(
+      c(v12_interact_by_event, v12_interact_by_market, v12_interact_by_guesthouse, v12_unwilling_to_interact, v12_unaware_of_location),
+      ~ mean(.x, na.rm = TRUE)
+    )
+      ) |> 
+  pivot_longer(
+    cols = -c(v1_sex, kaminoko_dummy),
+    names_to = "variable",
+    values_to = "mean"
+  ) |> 
+  ggplot(aes(x = mean, y = variable)) +
+  geom_col() +
+  facet_grid(v1_sex~ kaminoko_dummy)
+```
+
+# 世代による傾向の違い
+
+```{r v2_gen-v12-bycount}
+df |> 
+  filter(!is.na(v2_gen)) |> 
+  group_by(v2_gen) |> 
+  summarise(
+    across(
+      c(v12_interact_by_event, v12_interact_by_market, v12_interact_by_guesthouse, v12_unwilling_to_interact, v12_unaware_of_location),
+      ~ sum(.x, na.rm = TRUE)
+    )
+      ) |> 
+  pivot_longer(
+    cols = -v2_gen,
+    names_to = "variable",
+    values_to = "sum"
+  ) |> 
+  ggplot(aes(x = sum, y = variable)) +
+  geom_col() +
+  facet_wrap(~ v2_gen)
+```
+
+```{r v2_gen-v12}
+df |> 
+  filter(!is.na(v2_gen)) |> 
+  group_by(v2_gen) |> 
+  summarise(
+    across(
+      c(v12_interact_by_event, v12_interact_by_market, v12_interact_by_guesthouse, v12_unwilling_to_interact, v12_unaware_of_location),
+      ~ mean(.x, na.rm = TRUE)
+    )
+      ) |> 
+  pivot_longer(
+    cols = -v2_gen,
+    names_to = "variable",
+    values_to = "mean"
+  ) |> 
+  ggplot(aes(x = mean, y = variable)) +
+  geom_col() +
+  coord_cartesian(xlim = c(0, 1)) +
+  facet_wrap(~ v2_gen)
+```
+
+30代から60代あたりが交流意図が強い傾向？
+
+```{r v2_gen(regroup)-bycount}
+df |> 
+  filter(!is.na(v2_gen)) |> 
+  mutate(
+    gen_regroup = case_when(
+      v2_gen == "10代" | v2_gen == "20代" ~ "10-20代",
+      v2_gen == "30代" | v2_gen == "40代" | v2_gen == "50代" | v2_gen == "60代" ~ "30-60代",
+      TRUE  ~ v2_gen
+    )
+  ) |> 
+  group_by(gen_regroup) |> 
+  summarise(
+    across(
+      c(v12_interact_by_event, v12_interact_by_market, v12_interact_by_guesthouse, v12_unwilling_to_interact, v12_unaware_of_location),
+      ~ sum(.x, na.rm = TRUE)
+    )
+      ) |> 
+  pivot_longer(
+    cols = -gen_regroup,
+    names_to = "variable",
+    values_to = "count"
+  ) |> 
+  ggplot(aes(x = count, y = variable)) +
+  geom_col() +
+  facet_wrap(~ gen_regroup)
+```
+
+```{r v2_gen(regroup)}
+df |> 
+  filter(!is.na(v2_gen)) |> 
+  mutate(
+    gen_regroup = case_when(
+      v2_gen == "10代" | v2_gen == "20代" ~ "10-20代",
+      v2_gen == "30代" | v2_gen == "40代" | v2_gen == "50代" | v2_gen == "60代" ~ "30-60代",
+      TRUE  ~ v2_gen
+    )
+  ) |> 
+  group_by(gen_regroup) |> 
+  summarise(
+    across(
+      c(v12_interact_by_event, v12_interact_by_market, v12_interact_by_guesthouse, v12_unwilling_to_interact, v12_unaware_of_location),
+      ~ mean(.x, na.rm = TRUE)
+    )
+      ) |> 
+  pivot_longer(
+    cols = -gen_regroup,
+    names_to = "variable",
+    values_to = "mean"
+  ) |> 
+  ggplot(aes(x = mean, y = variable)) +
+  geom_col() +
+  coord_cartesian(xlim = c(0, 1)) +
+  facet_wrap(~ gen_regroup)
+```
+[69]30～60代は「交流したくない」という人の割合が小さい
+
+# 交流意図同士の関係性
+
+```{r v12-corrplot}
+m <- df |> 
+  select(
+    v12_unwilling_to_interact,
+    v12_unaware_of_location,
+    v12_interact_by_market,
+    v12_interact_by_guesthouse,
+    v12_interact_by_event
+  ) |> 
+  cor(use = "pairwise.complete.obs", method="pearson")
+
+corrplot(m)
+```
+```{r v12-corrplot}
+m <- df |> 
+  select(
+    v12_unwilling_to_interact,
+    v12_unaware_of_location,
+    v12_interact_by_market,
+    v12_interact_by_guesthouse,
+    v12_interact_by_event
+  ) |> 
+  cor(use = "pairwise.complete.obs", method="pearson")
+
+m
+```
+全部マイナス　→　複数回答だけど多くの人が1つしか選んでいないので、正の相関になりにくいのではないか？
+→　本当にそうなのか確かめてみよう
+
+```{r v12_ans_count}
+df |> 
+  mutate(
+    v12_ans_count = v12_unwilling_to_interact + v12_unaware_of_location + v12_interact_by_market + v12_interact_by_guesthouse + v12_interact_by_event
+  ) |> 
+  ggplot(aes(x = v12_ans_count)) +
+  geom_bar()
+```
+[70]v12はほとんどの人が選択肢を1つしか選んでいない
+→　これらを一種のクラスタと考えてもよいのでは
+
+```{r v12_ans_count-without_unwilling}
+df |> 
+  mutate(
+    v12_ans_count = v12_unaware_of_location + v12_interact_by_market + v12_interact_by_guesthouse + v12_interact_by_event
+  ) |> 
+  ggplot(aes(x = v12_ans_count)) +
+  geom_bar()
+```
