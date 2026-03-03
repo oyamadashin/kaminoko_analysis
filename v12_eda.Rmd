@@ -2,15 +2,17 @@
 title: "v12_eda"
 output: html_document
 date: "2026-03-02"
-# v12(住民との交流意図に関するEDA)
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 # source()
-```{r preparation}
+
+```{r preparation, message=FALSE}
 # 前処理用ファイルをソースとする
 source("kaminoko_2025_preparation.R")
 ```
-
 
 # 道内外での傾向の違い
 
@@ -34,10 +36,9 @@ df |>
   coord_cartesian(xlim = c(0, 1)) +
   facet_wrap(~ v3_hokkaido)
 ```
-道内の方がイベントで関わりたいという意向が強い。
-[60] 道外は清里町に神の子池があると知らなかった人がやや多い。
 
-
+道内の方がイベントで関わりたいという意向が強い。 [60]
+道外は清里町に神の子池があると知らなかった人がやや多い。
 
 ```{r v1_sex-v12}
 df |> 
@@ -59,9 +60,8 @@ df |>
   coord_cartesian(xlim = c(0, 1)) +
   facet_wrap(~ v1_sex)
 ```
+
 [61]男性の方が「交流したくない」人が多め
-
-
 
 ```{r v1_sex-v3_hokkaido-v12}
 df |> 
@@ -83,11 +83,11 @@ df |>
   coord_cartesian(xlim = c(0, 1)) +
   facet_grid(v3_hokkaido~ v1_sex)
 ```
+
 基本的に、性別と道内外は交流意図に独立して影響する傾向。
 ただし、直売で交流する意図については道外の男性がもっとも低い
 
 [62]直売での交流意図は道外男性がもっとも弱い
-
 
 ```{r v1_sex-v3_hokkaido-v12-by_count}
 df |> 
@@ -108,8 +108,8 @@ df |>
   geom_col() +
   facet_grid(v3_hokkaido~ v1_sex)
 ```
-度数表示。極端にサンプルが少ないグリッドはない
 
+度数表示。極端にサンプルが少ないグリッドはない
 
 # 神の子訪問回数による傾向の違い
 
@@ -133,6 +133,7 @@ df |>
   coord_cartesian(xlim = c(0, 1)) +
   facet_wrap(~ v6_kaminoko_visits)
 ```
+
 [63]神の子訪問回数が多いほどイベントでの交流意図が強い
 
 ```{r v6-v12-bycount}
@@ -154,6 +155,7 @@ df |>
   geom_col() +
   facet_wrap(~ v6_kaminoko_visits)
 ```
+
 3回目以上はサンプルがすかすかなので注意。
 
 ```{r v6-v12-bycount_first-second-comparison-count}
@@ -181,6 +183,7 @@ df |>
   geom_col() +
   facet_wrap(~ kaminoko_dummy)
 ```
+
 2回目と3回目以上を一緒にしてみた
 
 ```{r v6-v12-bycount_first-second-comparison}
@@ -208,9 +211,9 @@ df |>
   geom_col() +
   facet_wrap(~ kaminoko_dummy)
 ```
+
 [67]神の子訪問2回目以上だとイベントで交流したいが多くなる
 [68]神の子訪問2回目以上だと、清里町だと気づかなかったは大幅に減る
-
 
 ```{r v1_sex-v6-v12}
 df |> 
@@ -255,8 +258,8 @@ df |>
   geom_col() +
   facet_grid(v1_sex~ v6_kaminoko_visits)
 ```
-[66]神の子訪問3回目以上はサンプル数がかなり少ないことに注意
 
+[66]神の子訪問3回目以上はサンプル数がかなり少ないことに注意
 
 ```{r v1_sex-v6-v12-bycount-first-second-comparison}
 df |> 
@@ -409,6 +412,7 @@ df |>
   coord_cartesian(xlim = c(0, 1)) +
   facet_wrap(~ gen_regroup)
 ```
+
 [69]30～60代は「交流したくない」という人の割合が小さい
 
 # 交流意図同士の関係性
@@ -426,7 +430,8 @@ m <- df |>
 
 corrplot(m)
 ```
-```{r v12-corrplot}
+
+```{r v12-correlation}
 m <- df |> 
   select(
     v12_unwilling_to_interact,
@@ -439,6 +444,7 @@ m <- df |>
 
 m
 ```
+
 全部マイナス　→　複数回答だけど多くの人が1つしか選んでいないので、正の相関になりにくいのではないか？
 →　本当にそうなのか確かめてみよう
 
@@ -450,6 +456,7 @@ df |>
   ggplot(aes(x = v12_ans_count)) +
   geom_bar()
 ```
+
 [70]v12はほとんどの人が選択肢を1つしか選んでいない
 →　これらを一種のクラスタと考えてもよいのでは
 
@@ -461,3 +468,115 @@ df |>
   ggplot(aes(x = v12_ans_count)) +
   geom_bar()
 ```
+
+# WTPとの関連性
+
+```{r v12_event-wtp_interval}
+df |> 
+  filter(!is.na(v12_interact_by_event) & !is.na(wtp_interval)) |> 
+  ggplot(aes( y = wtp_interval)) +
+  geom_bar() +
+  facet_wrap(~ v12_interact_by_event)
+```
+
+```{r v12_event-wtp_interval_prop}
+df |> 
+  filter(!is.na(v12_interact_by_event) & !is.na(wtp_interval)) |> 
+  count(v12_interact_by_event, wtp_interval) |> 
+  group_by(v12_interact_by_event) |> 
+  mutate(
+    prop = n / sum(n)
+  )|> 
+  ggplot(aes(x = prop, y = wtp_interval)) +
+  geom_col() +
+  facet_wrap(~ v12_interact_by_event)
+```
+
+イベントを通して関わりたいという人のサンプル数が少ないので、正規化したグラフはあまり当てにならない。
+
+```{r v12_market-wtp_interval}
+df |> 
+  filter(!is.na(v12_interact_by_market) & !is.na(wtp_interval)) |> 
+  ggplot(aes( y = wtp_interval)) +
+  geom_bar() +
+  facet_wrap(~ v12_interact_by_market)
+```
+
+```{r v12_market-wtp_interval_prop}
+df |> 
+  filter(!is.na(v12_interact_by_market) & !is.na(wtp_interval)) |> 
+  count(v12_interact_by_market, wtp_interval) |> 
+  group_by(v12_interact_by_market) |> 
+  mutate(
+    prop = n / sum(n)
+  )|> 
+  ggplot(aes(x = prop, y = wtp_interval)) +
+  geom_col() +
+  facet_wrap(~ v12_interact_by_market)
+```
+
+正規化するとあまり違いがみえない。
+
+↓以下、サンプル数が少ないので、正規化はせずに度数を示す。
+
+```{r v12_guesthouse-wtp_interval}
+df |> 
+  filter(!is.na(v12_interact_by_guesthouse) & !is.na(wtp_interval)) |> 
+  ggplot(aes( y = wtp_interval)) +
+  geom_bar() +
+  facet_wrap(~ v12_interact_by_guesthouse)
+```
+
+```{r v12_unwilling-wtp_interval}
+df |> 
+  filter(!is.na(v12_unwilling_to_interact) & !is.na(wtp_interval)) |> 
+  ggplot(aes( y = wtp_interval)) +
+  geom_bar() +
+  facet_wrap(~ v12_unwilling_to_interact)
+```
+
+```{r v12_unaware-wtp_interval}
+df |> 
+  filter(!is.na(v12_unaware_of_location) & !is.na(wtp_interval)) |> 
+  ggplot(aes( y = wtp_interval)) +
+  geom_bar() +
+  facet_wrap(~ v12_unaware_of_location)
+```
+
+[71]交流意図とwtpに関連はなさそう
+
+# 満足度との関連性
+
+```{r v12_event-satisfaction}
+df |> 
+  filter(!is.na(v12_interact_by_event)) |> 
+  group_by(v12_interact_by_event) |> 
+  pivot_longer(
+    cols = starts_with("v9_"),
+    names_to = "satisfaction_type",
+    values_to = "score"
+  ) |> 
+  ggplot(aes(x = score, y = satisfaction_type)) +
+  geom_boxplot() +
+  facet_wrap(~ v12_interact_by_event)
+```
+
+あまり傾向の違いはみられない。また、そもそも1の人が少ないのであまり意味のある比較ではない（直売で交流以外は意味のある比較はできない）。
+
+```{r v12_market-satisfaction}
+df |> 
+  filter(!is.na(v12_interact_by_market)) |> 
+  group_by(v12_interact_by_market) |> 
+  pivot_longer(
+    cols = starts_with("v9_"),
+    names_to = "satisfaction_type",
+    values_to = "score"
+  ) |> 
+  ggplot(aes(x = score, y = satisfaction_type)) +
+  geom_boxplot() +
+  facet_wrap(~ v12_interact_by_market)
+```
+
+大きな傾向のちがいはみられない。中央値で見ると多少異なるけど、箱自体は同じような感じだ。
+
+[72]神の子訪問満足度と直売交流意図にはほとんど関連性なし

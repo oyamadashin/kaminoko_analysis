@@ -11,6 +11,17 @@ date: "2026-03-02"
 source("kaminoko_2025_preparation.R")
 ```
 
+```{r}
+df$v12_interact_by_market |> 
+  table()
+```
+
+
+```{r}
+df$v11_revisit_intention |> 
+  table()
+```
+
 
 ```{r}
 df |> 

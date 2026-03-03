@@ -1,0 +1,11 @@
+---
+title: "v7_eda"
+output: html_document
+date: "2026-03-03"
+# v7(神の子訪問きっかけ)
+---
+
+```{r preparation, message=FALSE}
+# 前処理用ファイルをソースとする
+source("kaminoko_2025_preparation.R")
+```

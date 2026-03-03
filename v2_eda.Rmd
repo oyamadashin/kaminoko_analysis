@@ -4,6 +4,12 @@ output: html_document
 date: "2026-02-24"
 ---
 
+# source()
+```{r preparation, message=FALSE}
+# 前処理用ファイルをソースとする
+source("kaminoko_2025_preparation.R")
+```
+
 # なぜ20代が多い？
 
 ```{r plot-date-v2_gen}
