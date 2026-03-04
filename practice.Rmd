@@ -12,6 +12,26 @@ source("kaminoko_2025_preparation.R")
 ```
 
 ```{r}
+df$wtp_interval |> table()
+```
+
+
+```{r}
+library(tidyverse)
+y <- c(0, -1, 1, 0, 2, -2, 1, 1, -2)
+x <- c(-1, 1, 0, 0, -2, 2, -2, 2, 0)
+
+df_practice <- data.frame(
+  y = y,
+  x = x
+)
+
+model <- lm(y ~ x, data =df_practice)
+model |> summary()
+```
+
+
+```{r}
 df$v12_interact_by_market |> 
   table()
 ```

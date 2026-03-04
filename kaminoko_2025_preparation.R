@@ -605,6 +605,13 @@ df <- df |> mutate(
   )
 )
 
+### purist指標----
+
+df <- df |>
+  mutate(
+    purist = rowSums(pick(starts_with("v15_"))) 
+  ) 
+# v15系質問で欠損ならpuristも欠損の方が良いのでna.rm = TRUEは使わない。
 
 ## 欠損パターンをコーディング----
 
