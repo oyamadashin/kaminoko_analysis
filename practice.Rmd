@@ -12,7 +12,20 @@ source("kaminoko_2025_preparation.R")
 ```
 
 ```{r}
-df$wtp_interval |> table()
+df2 <- df |> 
+  filter(!is.na(wtp_interval) & date == "7月20-21日")
+
+df2$wtp_interval |> table()
+
+df3 <- df |> 
+  filter(date == "7月20-21日")
+
+df3 |> count()
+
+
+df |> 
+  count(date, yes_no_pattern) |> 
+  pivot_wider(names_from = yes_no_pattern, values_from = n)
 ```
 
 
