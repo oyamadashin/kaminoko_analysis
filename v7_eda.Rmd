@@ -9,3 +9,267 @@ date: "2026-03-03"
 # 前処理用ファイルをソースとする
 source("kaminoko_2025_preparation.R")
 ```
+
+# 注意
+v6_kaminoko_visits == "はじめて"という条件はfilter()に入れること。「はじめて」でないのにきっかけを回答してる人がいるから。
+
+
+# dateによるちがい
+
+```{r date-v7}
+df |> 
+  filter(date != "7月20-21日" & !is.na(date) & v6_kaminoko_visits == "はじめて") |> 
+  group_by(date) |> 
+  summarise(
+    web_prop = mean(v7_web, na.rm = TRUE),
+    other_prop = mean(v7_other_web, na.rm = TRUE),
+    review_prop = mean(v7_web_reviews, na.rm = TRUE),
+    tv_prop = mean(v7_tv, na.rm = TRUE),
+    agency_prop = mean(v7_travel_agency, na.rm = TRUE),
+    magazine_prop = mean(v7_magazine, na.rm = TRUE),
+    com_sugg_prop = mean(v7_companion_suggestion, na.rm = TRUE),
+    non_com_sugg_prop = mean(v7_non_companion_info, na.rm = TRUE)
+  ) |> 
+  pivot_longer(
+    cols = -date,
+    names_to = "v7",
+    values_to = "prop"
+  ) |> 
+  ggplot(aes(x = prop, y = v7)) +
+  geom_col() +
+  scale_x_continuous(lim = c(0, 1)) +
+  facet_wrap(~date)
+
+```
+おおきなちがいはみられない
+
+
+# 性別によるちがい
+
+```{r v1-v7}
+df |> 
+  filter(!is.na(v1_sex) & v6_kaminoko_visits == "はじめて") |> 
+  group_by(v1_sex) |> 
+  summarise(
+    web_prop = mean(v7_web, na.rm = TRUE),
+    other_prop = mean(v7_other_web, na.rm = TRUE),
+    review_prop = mean(v7_web_reviews, na.rm = TRUE),
+    tv_prop = mean(v7_tv, na.rm = TRUE),
+    agency_prop = mean(v7_travel_agency, na.rm = TRUE),
+    magazine_prop = mean(v7_magazine, na.rm = TRUE),
+    com_sugg_prop = mean(v7_companion_suggestion, na.rm = TRUE),
+    non_com_sugg_prop = mean(v7_non_companion_info, na.rm = TRUE)
+  ) |> 
+  pivot_longer(
+    cols = -v1_sex,
+    names_to = "v7",
+    values_to = "prop"
+  ) |> 
+  ggplot(aes(x = prop, y = v7)) +
+  geom_col() +
+  scale_x_continuous(lim = c(0, 1)) +
+  facet_wrap(~v1_sex)
+
+```
+性差もそれほど大きくない
+
+
+# 世代によるちがい
+
+```{r v2-v7}
+df |> 
+  filter(!is.na(v2_gen) & v6_kaminoko_visits == "はじめて") |> 
+  group_by(v2_gen) |> 
+  summarise(
+    web_prop = mean(v7_web, na.rm = TRUE),
+    other_prop = mean(v7_other_web, na.rm = TRUE),
+    review_prop = mean(v7_web_reviews, na.rm = TRUE),
+    tv_prop = mean(v7_tv, na.rm = TRUE),
+    agency_prop = mean(v7_travel_agency, na.rm = TRUE),
+    magazine_prop = mean(v7_magazine, na.rm = TRUE),
+    com_sugg_prop = mean(v7_companion_suggestion, na.rm = TRUE),
+    non_com_sugg_prop = mean(v7_non_companion_info, na.rm = TRUE)
+  ) |> 
+  pivot_longer(
+    cols = -v2_gen,
+    names_to = "v7",
+    values_to = "prop"
+  ) |> 
+  ggplot(aes(x = prop, y = v7)) +
+  geom_col() +
+  scale_x_continuous(lim = c(0, 1)) +
+  facet_wrap(~v2_gen)
+
+```
+40代がweb口コミが多いかな、というくらいで大きな差はなさそうかな。あえていえば、清里町のHPがきっかけの人は40代以上の世代に偏ってるかな。
+
+[77]清里町のHPがきっかけの人は40代以上の世代に偏ってる
+
+
+# 居住地によるちがい
+
+```{r v3-v7}
+df |> 
+  filter(!is.na(v3_hokkaido) & v6_kaminoko_visits == "はじめて") |> 
+  group_by(v3_hokkaido) |> 
+  summarise(
+    web_prop = mean(v7_web, na.rm = TRUE),
+    other_prop = mean(v7_other_web, na.rm = TRUE),
+    review_prop = mean(v7_web_reviews, na.rm = TRUE),
+    tv_prop = mean(v7_tv, na.rm = TRUE),
+    agency_prop = mean(v7_travel_agency, na.rm = TRUE),
+    magazine_prop = mean(v7_magazine, na.rm = TRUE),
+    com_sugg_prop = mean(v7_companion_suggestion, na.rm = TRUE),
+    non_com_sugg_prop = mean(v7_non_companion_info, na.rm = TRUE)
+  ) |> 
+  pivot_longer(
+    cols = -v3_hokkaido,
+    names_to = "v7",
+    values_to = "prop"
+  ) |> 
+  ggplot(aes(x = prop, y = v7)) +
+  geom_col() +
+  scale_x_continuous(lim = c(0, 1)) +
+  facet_wrap(~v3_hokkaido)
+
+```
+
+(別のファイルで検討済み)
+
+# 北海道訪問回数によるちがい
+
+
+```{r v4-v7}
+df |> 
+  filter(!is.na(v4_hokkaido_visits) & v6_kaminoko_visits == "はじめて") |> 
+  group_by(v4_hokkaido_visits) |> 
+  summarise(
+    web_prop = mean(v7_web, na.rm = TRUE),
+    other_prop = mean(v7_other_web, na.rm = TRUE),
+    review_prop = mean(v7_web_reviews, na.rm = TRUE),
+    tv_prop = mean(v7_tv, na.rm = TRUE),
+    agency_prop = mean(v7_travel_agency, na.rm = TRUE),
+    magazine_prop = mean(v7_magazine, na.rm = TRUE),
+    com_sugg_prop = mean(v7_companion_suggestion, na.rm = TRUE),
+    non_com_sugg_prop = mean(v7_non_companion_info, na.rm = TRUE)
+  ) |> 
+  pivot_longer(
+    cols = -v4_hokkaido_visits,
+    names_to = "v7",
+    values_to = "prop"
+  ) |> 
+  ggplot(aes(x = prop, y = v7)) +
+  geom_col() +
+  scale_x_continuous(lim = c(0, 1)) +
+  facet_wrap(~v4_hokkaido_visits)
+
+```
+[79]北海道訪問はじめての人は同行者の提案がきっかけという人が多い
+→　まあ、北海道はじめてでいきなり神の子池に行こうと自分から考える人は少ないだろう
+
+
+
+# 同行者の人数によるちがい
+
+```{r v5-v7}
+df |> 
+  filter(!is.na(v5_companions_cnt) & v6_kaminoko_visits == "はじめて") |> 
+  group_by(v5_companions_cnt) |> 
+  summarise(
+    web_prop = mean(v7_web, na.rm = TRUE),
+    other_prop = mean(v7_other_web, na.rm = TRUE),
+    review_prop = mean(v7_web_reviews, na.rm = TRUE),
+    tv_prop = mean(v7_tv, na.rm = TRUE),
+    agency_prop = mean(v7_travel_agency, na.rm = TRUE),
+    magazine_prop = mean(v7_magazine, na.rm = TRUE),
+    com_sugg_prop = mean(v7_companion_suggestion, na.rm = TRUE),
+    non_com_sugg_prop = mean(v7_non_companion_info, na.rm = TRUE)
+  ) |> 
+  pivot_longer(
+    cols = -v5_companions_cnt,
+    names_to = "v7",
+    values_to = "prop"
+  ) |> 
+  ggplot(aes(x = prop, y = v7)) +
+  geom_col() +
+  scale_x_continuous(lim = c(0, 1)) +
+  facet_wrap(~v5_companions_cnt)
+
+```
+3人連れ以上は同行者の提案がきっかけという人が多い（これはすでに別のところで書いてる）
+
+[78]1人旅の人はネット口コミがきっかけの人が多い
+
+
+(神の子訪問回数によるちがいはみない。訪問きっかけははじめての人にしか聞いてないから)
+
+
+# 神の子期待度への影響
+
+```{r v7-v8_scenery_bar}
+df |> 
+  filter(!is.na(v8_scenery_expectation) & v6_kaminoko_visits == "はじめて") |> 
+  pivot_longer(
+    cols = c(v7_web, v7_other_web, v7_web_reviews, v7_tv, v7_travel_agency, v7_magazine, v7_companion_suggestion, v7_non_companion_info),
+    names_to = "v7_contents",
+    values_to = "yes"
+  ) |> 
+  filter(yes == 1) |> 
+  ggplot(aes(x = v8_scenery_expectation)) +
+  geom_bar() +
+  xlab("景色期待度の分布") + 
+  facet_wrap(~v7_contents)
+```
+同行者の提案という人は景色期待度が高い、といえなくもないような…。
+
+```{r v7-v8_scenery_bar}
+df |> 
+  filter(!is.na(v8_scenery_expectation) & v6_kaminoko_visits == "はじめて") |> 
+  pivot_longer(
+    cols = c(v7_web, v7_other_web, v7_web_reviews, v7_tv, v7_travel_agency, v7_magazine, v7_companion_suggestion, v7_non_companion_info),
+    names_to = "v7_contents",
+    values_to = "yes"
+  ) |> 
+  filter(yes == 1) |> 
+  ggplot(aes(x = v8_scenery_expectation, y = v7_contents)) +
+  geom_boxplot()
+```
+
+中央値でみるとだいたい期待度は同じ
+しかし、同行者の提案がきっかけの人は、サンプルが多めなのにばらつきが大きい
+
+また、ネット口コミがきっかけの人もサンプル多めだけど、こちらはばらつきが小さい
+
+```{r v7-v8_general_bar}
+df |> 
+  filter(!is.na(v8_general_expectation) & v6_kaminoko_visits == "はじめて") |> 
+  pivot_longer(
+    cols = c(v7_web, v7_other_web, v7_web_reviews, v7_tv, v7_travel_agency, v7_magazine, v7_companion_suggestion, v7_non_companion_info),
+    names_to = "v7_contents",
+    values_to = "yes"
+  ) |> 
+  filter(yes == 1) |> 
+  ggplot(aes(x = v8_general_expectation)) +
+  geom_bar() +
+  xlab("景色期待度の分布") + 
+  facet_wrap(~v7_contents)
+```
+
+```{r v7-v8_general_bar}
+df |> 
+  filter(!is.na(v8_general_expectation) & v6_kaminoko_visits == "はじめて") |> 
+  pivot_longer(
+    cols = c(v7_web, v7_other_web, v7_web_reviews, v7_tv, v7_travel_agency, v7_magazine, v7_companion_suggestion, v7_non_companion_info),
+    names_to = "v7_contents",
+    values_to = "yes"
+  ) |> 
+  filter(yes == 1) |> 
+  ggplot(aes(x = v8_general_expectation, y = v7_contents)) +
+  geom_boxplot()
+```
+総合期待度だとネット口コミがきっかけの人の期待度がばらつくようになる
+
+# 神の子満足度への影響
+
+
+

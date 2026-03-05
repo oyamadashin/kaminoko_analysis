@@ -1,0 +1,397 @@
+---
+title: "purist"
+output: html_document
+date: "2026-03-05"
+---
+
+# source()
+```{r preparation, message=FALSE}
+# 前処理用ファイルをソースとする
+source("kaminoko_2025_preparation.R")
+```
+
+# purist指標の作成
+
+```{r v15-corrplot}
+df2 <-  df |> 
+  filter(date == "7月20-21日")
+  
+access <- df2$v15_critical_access_attitude
+parking <- df2$v15_critical_parking_attitude
+crowd <- df2$v15_critical_crowd_attitude
+shop <- df2$v15_critical_shop_attitude
+photo <- df2$v15_critical_photospot_attitude
+
+df3 <- data.frame(
+  access, parking, crowd, shop, photo
+)
+
+m <- df3 |> 
+  cor(use = "pairwise.complete.obs", method="kendall")
+
+corrplot(m)
+```
+```{r v15-corr}
+df3 |> 
+  cor(use = "pairwise.complete.obs", method="kendall")
+```
+
+相関で見る限り、purist指標として同じ方向性を向いていそうな気配。
+
+```{r v15-chronbach}
+library(psych)
+
+psych::alpha(df3)
+```
+クロンバックのαは0.8以上とかなり大きい。purist指標として使ってOK。
+
+```{r purist-hist}
+df3 |> 
+  rowMeans() |> 
+  hist()
+```
+
+分布もそこそこきれい。天井効果も床効果もなさそう。
+
+→じゃあ次は、purist指標をもう少し分解できないか探ってみよう。
+
+```{r purist-mean}
+df3 |> 
+  summarise(across(everything(), \(x) mean(x, na.rm = TRUE)))
+```
+
+crowdを「妨げ」と考える傾向が強いのは、puristだろうとそうでなかろうと、人混みを嫌がるからだろう。
+
+
+```{r purist-sd}
+df3 |> 
+  summarise(across(everything(), \(x) sd(x, na.rm = TRUE)))
+```
+
+crowdはばらつきも小さい。人混みは嫌だ、というのはある程度共通した傾向。
+一方、accessとかparkingとかのインフラ系はばらつきが大きい。
+
+```{r purist-pca}
+prcomp(na.omit(df3))
+```
+
+第1主成分は（非）purist指標だろう。第2主成分はインフラ系が負になっていて、他の要素を異なる動きをしている。インフラを重視するか、観光地そのものの状況を重視するか、ということではないか。
+
+```{r purist-pca-plot}
+p <- prcomp(na.omit(df3))
+plot(p$x[, 1], p$x[, 2])
+```
+
+purist指標の方が分散が大きい→回答者のタイプの違いはおもにpurist指標で決まる。→では、v15系の合計値を今後の分析に使うので基本的にOKだろう。
+
+
+
+
+# 池の要素の満足度との関係
+
+```{r corrplot(purist-v10)}
+m <- df |> 
+  select(purist,v10_kaminoko_scenery_satis, v10_kaminoko_silence_satis, v10_kaminoko_forest_satis, v10_kaminoko_achievement_satis) |> 
+  cor(use = "pairwise.complete.obs", method="kendall")
+
+corrplot(m)
+```
+
+## →関連性見られない
+
+
+# 神の子訪問満足度との関係
+
+```{r corrplot(purist-v9)}
+m <- df |> 
+  select(purist, 
+         v9_scenery_satisfaction, v9_access_satisfaction, v9_facility_satisfaction, v9_tourist_spot_satisfaction, v9_general_satisfaction) |> 
+  cor(use = "pairwise.complete.obs", method="kendall")
+
+corrplot(m)
+```
+ほとんど関係なし
+
+
+```{r corr(purist-v9)}
+df |> 
+  select(purist, 
+         v9_scenery_satisfaction, v9_access_satisfaction, v9_facility_satisfaction, v9_tourist_spot_satisfaction, v9_general_satisfaction) |> 
+  cor(use = "pairwise.complete.obs", method="kendall")
+
+```
+## →関連性見られない
+
+
+# 道内外でのちがい
+
+```{r v3-purist-boxplot}
+df |> 
+  filter(!is.na(v3_hokkaido) & !is.na(purist)) |> 
+  ggplot(aes(x = v3_hokkaido, y = purist)) +
+  geom_boxplot()
+```
+
+```{r v3-purist-anova}
+anova_result <- aov(
+  purist ~ factor(v3_hokkaido),
+  data = df |> filter(!is.na(v3_hokkaido) & !is.na(purist))
+)
+
+anova_result |> summary()
+```
+
+道内外の差は10％水準有意。あまり大きな差ではない。
+
+# 訪問回数によるちがい
+
+```{r v6-purist-boxplot}
+df |> 
+  filter(!is.na(v6_kaminoko_visits) & !is.na(purist)) |> 
+ggplot(aes(factor(v6_kaminoko_visits), purist)) +
+  geom_boxplot()
+```
+```{r v6-purist-anova}
+anova_result <- aov(
+  purist ~ factor(v6_kaminoko_visits),
+  data = df |> filter(!is.na(v6_kaminoko_visits) & !is.na(purist))
+)
+
+anova_result |> summary()
+TukeyHSD(anova_result)
+```
+
+
+「はじめて」と「2回目以上」を統合してみよう
+
+```{r v6(first_second_joint)-purist-boxplot}
+df |> 
+  filter(!is.na(v6_kaminoko_visits) & !is.na(purist)) |>
+  mutate(
+    v6_kaminoko_visits = ifelse(v6_kaminoko_visits %in% c("はじめて", "2回目"), "2回目以下", "3回目")
+  ) |> 
+ggplot(aes(factor(v6_kaminoko_visits), purist)) +
+  geom_boxplot()
+```
+
+```{r v6(first_second_joint)-purist-anova}
+
+df2 <- df |> 
+  filter(!is.na(v6_kaminoko_visits) & !is.na(purist)) |>
+  mutate(
+    v6_kaminoko_visits = ifelse(v6_kaminoko_visits %in% c("はじめて", "2回目"), "2回目以下", "3回目")
+  )
+
+anova_result <- aov(
+  purist ~ factor(v6_kaminoko_visits),
+  data = df2
+)
+
+anova_result |> summary()
+```
+
+```{r v6(first_second_joint)-purist-hist}
+df2 |> 
+  ggplot(aes(x = purist)) +
+  geom_histogram() +
+  facet_wrap(~ v6_kaminoko_visits)
+```
+神の子訪問が3回目以上になるとpurist指標が大きくなる傾向だけど、そもそも3回目以上はサンプルが非常に少ない。
+あと、3回目以上はpurist指標の小さい人がほとんどいないな。→リピーターになるのはpuristということかな。
+
+[73]神の子訪問3回目以上の人はpurist指標の平均が大きい
+
+じゃあ、「はじめて」と「2回目以上」を統合してみたら？
+
+```{r v6(second_third_joint)-purist-boxplot}
+df3 <- df |> 
+  filter(!is.na(v6_kaminoko_visits) & !is.na(purist)) |>
+  mutate(
+    v6_kaminoko_visits = ifelse(v6_kaminoko_visits %in% c("2回目", "3回目以上"), "2回目以上", "はじめて")
+  ) 
+
+
+ggplot(df3, aes(factor(v6_kaminoko_visits), purist)) +
+  geom_boxplot()
+```
+
+```{r v6(second_third_joint)-purist-anova}
+
+anova_result <- aov(
+  purist ~ factor(v6_kaminoko_visits),
+  data = df3
+)
+
+anova_result |> summary()
+```
+
+```{r v6(second_third_joint)-purist-hist}
+df3 |> 
+  ggplot(aes(x = purist)) +
+  geom_histogram() +
+  facet_wrap(~ v6_kaminoko_visits)
+```
+
+サンプル数のちがいがあるから微妙な結果ではあるけど、有意差があるわけだから、とりあえず3回目以上だとpurist指標が大きくなると考えてよいと思う。
+
+
+# wtpに与える影響
+
+```{r purist-wtp_interval-bar}
+df |> 
+  filter(!is.na(purist) & !is.na(wtp_interval)) |> 
+  mutate(
+    purist_group = ifelse(purist >= mean(purist, na.rm=TRUE),
+                          "high", "low")
+  ) |> 
+  ggplot(aes(y = wtp_interval)) +
+  geom_bar() +
+  facet_wrap(~purist_group)
+
+```
+```{r purist-wtp_interval-propbar}
+df |> 
+  filter(!is.na(purist) & !is.na(wtp_interval)) |> 
+  mutate(
+    purist_group = ifelse(purist >= mean(purist, na.rm=TRUE),
+                          "high", "low")
+  ) |> 
+  count(purist_group, wtp_interval) |> 
+  group_by(purist_group) |> 
+  mutate(
+    prop = n / sum(n)
+  ) |> 
+  ggplot(aes(x = prop, y = wtp_interval, fill = purist_group)) +
+  geom_col(position = "dodge") 
+
+```
+[75]purist指標の高低がwtpに影響するのは300-500円区間と1000-1500円区間。purist指標が高い方が、wtpがやや高価格帯になる。
+
+```{r v6-wtp_interval-propbar}
+df |> 
+  filter(!is.na(v6_kaminoko_visits) & !is.na(wtp_interval)) |> 
+  count(v6_kaminoko_visits, wtp_interval) |> 
+  group_by(v6_kaminoko_visits) |> 
+  mutate(
+    prop = n / sum(n)
+  ) |> 
+  ggplot(aes(x = prop, y = wtp_interval, fill = v6_kaminoko_visits)) +
+  geom_col(position = "dodge") 
+
+```
+
+```{r v6_dummy-wtp_interval-propbar}
+
+df_eda <- df |> 
+    filter(!is.na(v6_kaminoko_visits) & !is.na(wtp_interval)) |> 
+    mutate(
+      v6_dummy = ifelse(v6_kaminoko_visits %in% c("はじめて", "2回目"), "2回目以下", "3回目以上")
+    )
+  
+
+df_eda |> 
+  count(v6_dummy, wtp_interval) |> 
+  group_by(v6_dummy) |> 
+  mutate(
+    prop = n / sum(n)
+  ) |> 
+  ggplot(aes(x = prop, y = wtp_interval, fill = v6_dummy)) +
+  geom_col(position = "dodge") 
+
+```
+
+[76]神の子訪問回数はwtpの価格帯にあまり影響していない? (きれいな傾向でない)
+
+神の子訪問回数　→　purist  →  wtp価格帯　という関係性？　
+（神の子訪問回数からwtp価格帯への矢印はなし）
+
+
+# 世代によるちがい
+
+```{r v2-purist}
+df_eda <- df |> 
+  filter(!is.na(v2_gen) & !is.na(purist)) 
+
+
+ggplot(df_eda, aes(x = v2_gen, y = purist)) +
+  geom_boxplot()
+```
+世代差がありそうだな。ただ、世代内分散が大きいので、世代ではそれほど説明できてないということか。
+
+```{r v2-purist-anova}
+result <- aov(
+  purist ~ factor(v2_gen),
+  data = df_eda
+)
+
+result |> summary()
+
+```
+有意ではない。
+
+
+```{r v2-purist-v3}
+df |> 
+  filter(!is.na(v2_gen) & !is.na(purist)) |> 
+  ggplot(aes(x = v2_gen, y = purist)) +
+  geom_boxplot() +
+  facet_wrap(~ v3_hokkaido)
+```
+
+居住地ともクロスさせると傾向がよくわからなくなる。
+
+# 性差によるちがい
+
+```{r v1-purist}
+df_eda <- df |> 
+  filter(!is.na(v1_sex) & !is.na(purist)) 
+
+
+ggplot(df_eda, aes(x = v1_sex, y = purist)) +
+  geom_boxplot()
+```
+性差はみごとになし
+
+
+# 同行者人数によるちがいは？
+
+```{r v5-purist}
+df_eda <- df |> 
+  filter(!is.na(v5_companions_cnt) & !is.na(purist)) 
+
+
+ggplot(df_eda, aes(x = v5_companions_cnt, y = purist)) +
+  geom_boxplot()
+```
+1人旅の人はpuristの傾向が強い。これはなんかわかる。
+
+```{r v5-purist-anova}
+result <- aov(
+  purist ~ v5_companions_cnt, data = df_eda
+)
+
+result |> summary()
+```
+有意差はまったくなし
+→　1人かどうかでダミー変数にしてみたら？
+
+```{r v5_dummy-purist}
+df_eda2 <- df |> 
+  filter(!is.na(v5_companions_cnt) & !is.na(purist)) |> 
+  mutate(
+    v5_dummy = ifelse(v5_companions_cnt == "1人", "1人", "2人以上")
+  )
+
+ggplot(df_eda2, aes(x = v5_dummy, y = purist)) +
+  geom_boxplot()
+```
+
+```{r v5_dummy-purist-anova}
+result <- aov(
+  purist ~ v5_dummy, data = df_eda2
+)
+
+result |> summary()
+```
+
+[74]1人旅の人の方がpurist指標がやや大きい
