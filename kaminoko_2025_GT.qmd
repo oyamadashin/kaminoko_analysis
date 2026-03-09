@@ -619,7 +619,7 @@ df |>
 
 ```{r}
 df |> 
-  filter(!is.na(v14_bid1)) |> 
+  filter(!is.na(v14_bid1) & !is.na(wtp_interval)) |> 
   group_by(v14_bid1_wtp) |> 
   summarise(
     yes_rate = mean(v14_bid1 == "支払う"),
@@ -640,7 +640,7 @@ df |>
 
 ```{r}
 df |> 
-  filter(!is.na(v14_bid1)) |> 
+  filter(!is.na(v14_bid1) & !is.na(wtp_interval)) |> 
   group_by(v14_bid1_wtp, v13_citizen_consumer) |> 
   summarise(
     yes_rate = mean(v14_bid1 == "支払う"),
@@ -666,7 +666,7 @@ df |>
 
 ```{r}
 df |> 
-  filter(!is.na(v14_bid2_yes)) |> 
+  filter(!is.na(v14_bid2_yes) & !is.na(wtp_interval)) |> 
   group_by(v14_bid2_yes_wtp) |> 
   summarise(
     yes_rate = mean(v14_bid2_yes == "支払う"),
@@ -687,7 +687,7 @@ df |>
 
 ```{r}
 df |> 
-  filter(!is.na(v14_bid2_yes)) |> 
+  filter(!is.na(v14_bid2_yes) & !is.na(wtp_interval)) |> 
   group_by(v14_bid2_yes_wtp, v13_citizen_consumer) |> 
   summarise(
     yes_rate = mean(v14_bid2_yes == "支払う"),
@@ -713,7 +713,7 @@ df |>
 
 ```{r}
 df |> 
-  filter(!is.na(v14_bid2_no)) |> 
+  filter(!is.na(v14_bid2_no) & !is.na(wtp_interval)) |> 
   group_by(v14_bid2_no_wtp) |> 
   summarise(
     yes_rate = mean(v14_bid2_no == "支払う"),
@@ -739,7 +739,7 @@ df |>
 
 ```{r}
 df |> 
-  filter(!is.na(v14_bid2_no)) |> 
+  filter(!is.na(v14_bid2_no) & !is.na(wtp_interval)) |> 
   group_by(v14_bid2_no_wtp, v13_citizen_consumer) |> 
   summarise(
     yes_rate = mean(v14_bid2_no == "支払う"),

@@ -621,14 +621,17 @@ df <- df |>
     # 2問目でいずれかに回答している（両方回答も含む）
     bid2_any_answer =
       as.integer(!is.na(v14_bid2_yes) | !is.na(v14_bid2_no)),
-    # 2問目で両方回答している（誤回答NA）
-    bid2_both_answer = 
-      as.integer(!is.na(v14_bid2_yes) & !is.na(v14_bid2_no)),
+    # 1問目回答して、2問目は未回答(これはシングルバウンドとして扱う)
+    bid1_right_bid2_missing = 
+      as.integer(!is.na(v14_bid1) & is.na(v14_bid2_yes) & is.na(v14_bid2_no)),
+    # 1問目回答した上で、2問目で両方回答している（誤回答NA）
+    bid1_right_bid2_both_answer = 
+      as.integer(!is.na(v14_bid1) & !is.na(v14_bid2_yes) & !is.na(v14_bid2_no)),
     # 1問目は未回答で2問目は正しく回答している（未回答NA）
     bid1_missing_only =
       as.integer(is.na(v14_bid1) & bid2_any_answer & !bid2_both_answer),
     # 1問目は未回答で2問目は両方回答している（未回答＆誤回答NA）
-    bid1_none_bid2_both =
+    bid1_missing_bid2_both_answer =
       as.integer(is.na(v14_bid1) & bid2_both_answer),
     # 1問目も2問目も未回答（未回答NA）
     full_wtp_missing =

@@ -1,0 +1,159 @@
+---
+title: "v13-14"
+output: html_document
+date: "2026-03-09"
+---
+
+
+# source()
+```{r}
+# 前処理用ファイルをソースとする
+source("kaminoko_2025_preparation.R")
+```
+
+
+# 欠損の状況
+
+
+## 欠損全体状況
+
+
+```{r na_prop}
+df |> 
+  count(date, wtp_interval) |> 
+  group_by(date) |> 
+  mutate(
+    prop = n / sum(n)
+  ) |> 
+  filter(is.na(wtp_interval))
+```
+毎回30%以上の誤回答がみられる。とくに7月は40％近くが誤回答。
+
+
+## 欠損パターン
+
+```{r date-missing_pattern}
+df |> 
+  filter(is.na(wtp_interval)) |> 
+  pivot_longer(
+    cols = c("bid1_right_bid2_missing","bid1_right_bid2_both_answer", "bid1_missing_only", "bid1_missing_bid2_both_answer", "full_wtp_missing"),
+    names_to = "na_pattern",
+    values_to = "yes"
+  ) |> 
+  filter(yes == 1) |> 
+  group_by(date) |> 
+  count(na_pattern) |> 
+  summarise(na_pattern = na_pattern, prop = n / sum(n)) |> 
+  ggplot(aes(y = na_pattern, x = prop)) + 
+  geom_col() +
+  facet_wrap(~date)
+```
+
+欠損の内訳を調査日ごとに見てみた。どの日程でも1問目を未回答というパターンが多い。7月になると、1問目未回答で、2問目は両方回答というパターンが増える。
+
+### 世代によるちがい
+
+```{r v2-missing_pattern}
+df |> 
+  filter(is.na(wtp_interval)) |> 
+  pivot_longer(
+    cols = c("bid1_right_bid2_missing", "bid1_right_bid2_both_answer", "bid1_missing_only", "bid1_missing_bid2_both_answer", "full_wtp_missing"),
+    names_to = "na_pattern",
+    values_to = "yes"
+  ) |> 
+  filter(yes == 1 & !is.na(v2_gen)) |> 
+  group_by(v2_gen) |> 
+  count(na_pattern) |> 
+  summarise(na_pattern = na_pattern, prop = n / sum(n)) |> 
+  ggplot(aes(y = na_pattern, x = prop)) + 
+  geom_col() +
+  facet_wrap(~v2_gen)
+```
+
+世代によるちがいはあまりなさそう。
+
+
+### 初回提示額によるちがい
+
+```{r v14wtp-missing_pattern}
+df |> 
+  filter(is.na(wtp_interval)) |> 
+  pivot_longer(
+    cols = c("bid1_right_bid2_missing","bid1_right_bid2_both_answer", "bid1_missing_only", "bid1_missing_bid2_both_answer", "full_wtp_missing"),
+    names_to = "na_pattern",
+    values_to = "yes"
+  ) |> 
+  filter(yes == 1 & !is.na(v14_bid1_wtp)) |> 
+  group_by(v14_bid1_wtp) |> 
+  count(na_pattern) |> 
+  summarise(na_pattern = na_pattern, prop = n / sum(n)) |> 
+  ggplot(aes(y = na_pattern, x = prop)) + 
+  geom_col() +
+  facet_wrap(~v14_bid1_wtp)
+```
+
+初回提示額が1000円だと、初回未回答、二回目両方回答というパターンが増える→この場合、二回目提示額は1500円と500円。1500円という高額の金額に気を引かれ、初回提示額を見落としたのでは？
+
+### グループ人数によるちがい
+
+```{r v5-missing_pattern}
+df |> 
+  filter(is.na(wtp_interval)) |> 
+  pivot_longer(
+    cols = c("bid1_right_bid2_missing","bid1_right_bid2_both_answer", "bid1_missing_only", "bid1_missing_bid2_both_answer", "full_wtp_missing"),
+    names_to = "na_pattern",
+    values_to = "yes"
+  ) |> 
+  filter(yes == 1 & !is.na(v5_companions_cnt)) |> 
+  group_by(v5_companions_cnt) |> 
+  count(na_pattern) |> 
+  summarise(na_pattern = na_pattern, prop = n / sum(n)) |> 
+  ggplot(aes(y = na_pattern, x = prop)) + 
+  geom_col() +
+  facet_wrap(~v5_companions_cnt)
+```
+
+
+## bid1_missing_only
+
+```{r}
+df |> 
+  filter(bid1_missing_only == 1) |> 
+  pivot_longer(
+    cols = c("v14_bid2_yes", "v14_bid2_no"),
+    names_to = "bid2_yes_no",
+    values_to = "yes"
+  ) |> 
+  count(bid2_yes_no, yes) |>
+  ggplot(aes(x = yes, y = n)) +
+  geom_col() +
+  facet_wrap(~bid2_yes_no)
+
+```
+1回目未回答で、2回目正しく回答している人の、2回目回答傾向。1回目にyesを答えた人用の質問の方がNAが少ない　→　目に付いた一番高い金額にだけ反応している？
+
+
+```{r}
+df |> 
+  filter(bid1_missing_only == 1) |> 
+  pivot_longer(
+    cols = c("v14_bid2_yes", "v14_bid2_no"),
+    names_to = "bid2_yes_no",
+    values_to = "yes"
+  ) |> 
+  count(v14_bid1_wtp, bid2_yes_no, yes) |>
+  ggplot(aes(x = yes, y = n)) +
+  geom_col() +
+  facet_grid(v14_bid1_wtp~bid2_yes_no)
+
+```
+yesルートの2回目がレイアウト的に目立つ（設問が実線で囲まれている）のでそこが回答されやすいが、初回金額が500円、1000円だと、2回目yesルートでは1000円、1500円が提示されることになる。それらは高額すぎて非現実的だと忌避されて、NAが多くなるのではないか。逆に、より現実的なnoルートの方で「支払う」が多くなる（これはDoor-in-the-face効果の可能性がある）。
+
+
+# yes/noパターン（再掲）
+
+```{r yes_no_pattern}
+df |> 
+  count(v14_bid1_wtp, yes_no_pattern) |> 
+  pivot_wider(names_from = yes_no_pattern, values_from = n)
+```
