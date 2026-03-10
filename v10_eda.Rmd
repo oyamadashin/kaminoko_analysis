@@ -1,0 +1,55 @@
+---
+title: "v10_eda"
+output: html_document
+date: "2026-03-10"
+---
+
+# source()
+```{r preparation, message=FALSE}
+# 前処理用ファイルをソースとする
+source("kaminoko_2025_preparation.R")
+```
+
+```{r corrplot(v10)}
+m <- df |> 
+  select(v10_kaminoko_scenery_satis, v10_kaminoko_silence_satis, v10_kaminoko_forest_satis, v10_kaminoko_achievement_satis) |> 
+  cor(use = "pairwise.complete.obs", method="kendall")
+
+corrplot(m)
+```
+v10系の相関は高い。総合指標にしてみてはどうか？
+
+
+```{r v10-chronbach}
+df2 <- data.frame(
+  snenery = df$v10_kaminoko_scenery_satis,
+  silence = df$v10_kaminoko_silence_satis,
+  forest = df$v10_kaminoko_forest_satis,
+  achievement = df$v10_kaminoko_achievement_satis
+)
+
+psych::alpha(df2)
+```
+```{r}
+df2 |> 
+  mutate(
+    v10_sum = rowSums(pick(everything()))
+  ) |> 
+  filter(!is.na(v10_sum)) |> 
+  ggplot(aes(x = v10_sum)) +
+  geom_bar()
+```
+明らかに天井効果が発生しているので、これを総合指標として使うのはまずいだろう。
+
+```{r}
+df |> 
+  pivot_longer(
+    cols = starts_with("v10_"),
+    names_to = "satis",
+    values_to = "value"
+  )  |> 
+  ggplot(aes(x = satis, y = value)) +
+  geom_boxplot()
+
+```
+

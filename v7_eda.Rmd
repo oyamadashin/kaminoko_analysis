@@ -13,6 +13,20 @@ source("kaminoko_2025_preparation.R")
 # 注意
 v6_kaminoko_visits == "はじめて"という条件はfilter()に入れること。「はじめて」でないのにきっかけを回答してる人がいるから。
 
+# きっかけ同士の関係
+
+```{r}
+m <- df |> 
+  select(v7_web, v7_other_web, v7_tv, v7_travel_agency, v7_magazine, v7_companion_suggestion, v7_non_companion_info) |> 
+  cor(use = "pairwise.complete.obs", method="spearman")
+
+corrplot(m)
+```
+```{r}
+m
+```
+
+同行者の提案と非同行者の提案の相関が-0.3くらいでやや大きい
 
 # dateによるちがい
 

@@ -163,3 +163,109 @@ df |>
 ```
 
 - 総合期待度についてはむしろ道内か道外かの方が影響しているようにみえる。ただ、影響の方向性がいまいちつかめない。
+
+### 非同行者の提案
+
+```{r}
+# 非同行者の提案×景色期待度でCDF
+df |> 
+  filter(!is.na(v8_scenery_expectation) & !is.na(v7_non_companion_info)) |> 
+  group_by(v7_non_companion_info) |> 
+  ggplot(aes(x = v8_scenery_expectation)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:10) +
+  facet_wrap(~v7_non_companion_info)
+```
+
+```{r}
+# 非同行者の提案×景色期待度でCDF
+df |> 
+  filter(!is.na(v8_general_expectation) & !is.na(v7_non_companion_info)) |> 
+  group_by(v7_non_companion_info) |> 
+  ggplot(aes(x = v8_general_expectation)) +
+  stat_ecdf() +
+  scale_x_continuous(breaks = 1:10) +
+  facet_wrap(~v7_non_companion_info)
+```
+
+```{r}
+# 非同行者の提案×景色期待度で箱ひげ図＋バイオリンプロット
+df |> 
+  filter(!is.na(v8_scenery_expectation) & !is.na(v7_non_companion_info)) |> 
+  ggplot(aes(x = as.factor(v7_non_companion_info), y = v8_scenery_expectation)) +
+  geom_violin(trim = FALSE) +
+  geom_boxplot(width = 0.15, outlier.shape = NA)
+```
+
+```{r}
+# 非同行者の提案×総合期待度で箱ひげ図＋バイオリンプロット
+df |> 
+  filter(!is.na(v8_general_expectation) & !is.na(v7_non_companion_info)) |> 
+  ggplot(aes(x = as.factor(v7_non_companion_info), y = v8_general_expectation)) +
+  geom_violin(trim = FALSE) +
+  geom_boxplot(width = 0.15, outlier.shape = NA)
+```
+
+# 満足度関連
+
+
+## 相関
+
+
+```{r v9-corrplot}
+m <- df |> 
+  select(v9_scenery_satisfaction, v9_access_satisfaction, v9_facility_satisfaction, v9_tourist_spot_satisfaction, v9_general_satisfaction) |> 
+  cor(use = "pairwise.complete.obs", method="kendall")
+
+corrplot(m)
+```
+満足度同士の相関はそこまで高くない。ただし、景色満足度と総合満足度の相関は高い。
+
+```{r}
+m
+```
+相関行列でも確認。景色満足度と総合満足度は相関が0.627。
+
+## 箱ひげ図
+
+```{r}
+df |> 
+  pivot_longer(
+    cols = starts_with("v9_"),
+    names_to = "satis",
+    values_to = "value"
+  )  |> 
+  ggplot(aes(x = satis, y = value)) +
+  geom_boxplot() +
+  scale_y_continuous(breaks = 1:10) +
+  facet_wrap(~date) +
+  coord_flip()
+```
+7月は景色満足度のばらつきが大きくなり、中央値も下がる。ただ、意外と総合満足度はそれほど下がっていない。また、アクセス満足度も下がる（せっかく苦労してきたのにがっかり、ということ？）
+
+
+```{r}
+
+result <- lm(v9_general_satisfaction ~ v9_scenery_satisfaction + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction, data = df)
+
+result |> summary()
+```
+
+```{r}
+
+result <- lm(v9_general_satisfaction ~ v9_scenery_satisfaction + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction, data = df |> filter(date != "7月20-21日" & !is.na(wtp_interval)) )
+
+result |> summary()
+```
+
+区間回帰系の分析では使えないwtpの誤回答データおよびほぼ使わない7月データを外してみた。施設満足度は総合満足度に影響を与えない。
+
+
+```{r}
+
+result <- lm(v9_general_satisfaction ~ v9_scenery_satisfaction + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction, data = df |> filter(date == "7月20-21日" & !is.na(wtp_interval)) )
+
+result |> summary()
+```
+
+逆に7月データのみでも同様に見てみた。傾向は似通っている。

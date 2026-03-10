@@ -11,6 +11,34 @@ date: "2026-03-02"
 source("kaminoko_2025_preparation.R")
 ```
 
+
+```{r}
+df$v5_companions_cnt |> table()
+```
+
+
+```{r}
+df |> filter(date != "7月20-21日") |> 
+  select(starts_with("v7"))
+```
+
+
+```{r}
+df |> filter(full_wtp_right == 1) |> 
+  count(v14_bid1_wtp, v14_bid1, v14_bid2_yes, v14_bid2_no)
+```
+
+```{r}
+df |> count(wtp_interval)
+```
+
+
+```{r}
+df |> count(date)
+```
+
+
+
 ```{r}
 df2 <- df |> 
   filter(!is.na(wtp_interval) & date == "7月20-21日")

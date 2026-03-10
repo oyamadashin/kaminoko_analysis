@@ -157,3 +157,183 @@ df |>
   count(v14_bid1_wtp, yes_no_pattern) |> 
   pivot_wider(names_from = yes_no_pattern, values_from = n)
 ```
+
+# 区間回帰
+
+## 全日程データ使用
+
+```{r regress-1}
+# 定数項だけのモデル。full_wtp_right==1のみ使用
+model <- survreg(
+  Surv(L, U, type = "interval2") ~ 1,
+  data = df |> filter(full_wtp_right == 1),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+平均WTP＝中央値WTPは771円（切片）。
+
+```{r}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  v3_hokkaido + v9_general_satisfaction +  purist + v13_citizen_consumer,
+  data = df |> filter(full_wtp_right == 1),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+
+関係しそうな変数をいろいろ入れてみたけど有意にならない…。
+
+
+## 7月データ除外
+
+```{r}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  1,
+  data = df |> filter(full_wtp_right == 1 & date != "7月20-21日"),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+
+7月データを外すと平均WTPが771円から799円にアップ
+
+```{r}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  v3_hokkaido + v9_general_satisfaction + v13_citizen_consumer,
+  data = df |> filter(full_wtp_right == 1 & date != "7月20-21日"),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+
+7月のデータを抜くと、総合満足度が有意になった。道内ダミーも有意に近い。やはり7月データはいろいろ問題がありそうだ。
+
+
+```{r}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  v3_hokkaido + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction + v9_general_satisfaction + v13_citizen_consumer,
+  data = df |> filter(full_wtp_right == 1 & date != "7月20-21日"),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+
+満足度系を景色満足度だけ外してすべて入れた（総合満足度と景色満足度の相関が高いので）。
+総合満足度が高いほどWTPが高い（これは当たり前）。また、施設満足度が高いほどWTPが低くなる。これは、むしろ施設満足度が低いほどWTPが高くなると考えればいいだろう。調査自体、神の子池の整備のための入域料という設定なので、整備状況に不満であればもっとお金を払いたいというのは当たり前の反応だ。
+
+
+
+```{r}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  v3_hokkaido + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction + v9_general_satisfaction + v7_companion_suggestion +　v7_web_reviews + v7_non_companion_info +  v13_citizen_consumer,
+  data = df |> filter(full_wtp_right == 1 & date != "7月20-21日"),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+訪問きっかけでWTPが大きく変わる。訪問者以外の人から話を聞いたのがきっかけなのは、「話を聞いたから何となく来てみた」という感じで、能動的でないからWTPが下がるということかな？いや、でもちょっと無理がある解釈か。
+
+```{r}
+library(car)
+
+lm_model <- lm(
+  L ~ v3_hokkaido +
+    v9_access_satisfaction +
+    v9_facility_satisfaction +
+    v9_tourist_spot_satisfaction +
+    v9_general_satisfaction +
+    v7_companion_suggestion +
+    v7_web_reviews +
+    v7_non_companion_info + 
+    v13_citizen_consumer,
+  data = df |> filter(full_wtp_right == 1 & date != "7月20-21日")
+)
+
+vif(lm_model)
+```
+
+多重共線性というわけではなさそうだ。
+
+```{r}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  v3_hokkaido + v5_companions_cnt + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction + v9_general_satisfaction + v7_companion_suggestion +　v7_web_reviews + v7_non_companion_info + v12_unwilling_to_interact +  v13_citizen_consumer,
+  data = df |> filter(full_wtp_right == 1 & date != "7月20-21日"),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+サンプル数に対し説明変数が多いので、この結果は参考程度に。
+
+```{r}
+df |> 
+  filter(full_wtp_right == 1 & date != "7月20-21日") |> 
+  ggplot(aes(y = factor(v5_companions_cnt))) +
+  geom_bar() 
+```
+  ここでの分析に使っているデータだけで何人連れかの度数分布を出してみた。2人連れが圧倒的に多い。
+  
+```{r}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  v3_hokkaido + pair + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction + v9_general_satisfaction +  v7_non_companion_info + v12_unwilling_to_interact +  v13_citizen_consumer,
+  data = df |> filter(full_wtp_right == 1 & date != "7月20-21日"),
+  dist = "gaussian"
+)
+
+model |> summary()
+``` 
+
+## 7月データのみ
+
+```{r}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~ 1,
+  data = df |> filter(full_wtp_right == 1 & date == "7月20-21日"),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+7月データを除外すると平均WTPは799円なので、7月は70円くらいWTPが下がっている
+
+```{r}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  v1_sex + v3_hokkaido + v10_kaminoko_scenery_satis + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction + v9_general_satisfaction  + v13_citizen_consumer + purist,
+  data = df |> filter(full_wtp_right == 1 & date == "7月20-21日"),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+7月データのみ。general_satisfactionが効かなくなったり、道内外の差がなくなったり、挙動がやっぱりおかしい。そもそもモデル自体有意でない。
+
+
+
+## 7月ダミーを使った分析
+
+```{r}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  july_dummy + v1_sex + v3_hokkaido + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction + v9_general_satisfaction  + v13_citizen_consumer,
+  data = df |> filter(full_wtp_right == 1),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+
+```{r}
+model <- lm(v9_general_satisfaction ~ july_dummy, data = df)
+
+model |> summary()
+```
+
+どうも、7月ダミーの効果は総合満足度に吸収されているようだ。
+
+

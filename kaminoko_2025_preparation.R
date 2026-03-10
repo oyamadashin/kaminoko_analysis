@@ -4,6 +4,8 @@ library(tidyverse)
 library(patchwork)
 library(corrplot) # 相関行列を求める
 library(janitor) # 変数名をきれいにするためのパッケージ
+library(survival) # 区間回帰用
+library(psych) # クロンバックのα用
 
 
 # データインポートと結合----
@@ -188,7 +190,11 @@ df <- df |>
     date_detail = factor(date, levels = c("6月8日午前", "6月8日午後", "6月14日午前",  "6月14日午後", "6月15日午後", "7月20日午後", "7月21日午前", "7月21日午後"))
   ) 
 
-
+# 7月のデータが特殊なので7月ダミーを作っておく
+df <- df |> 
+  mutate(
+    july_dummy = ifelse(date == "7月20-21日", 1, 0)
+  )
 
 
 
@@ -279,7 +285,12 @@ df <- df |>
     v5_companions_cnt = factor(v5_companions_cnt, level = c("1人", "2人", "3人", "4人", "5人以上"))
   ) 
 
+# 2人連れが特殊な動きをしているので、2人連れダミーを作ろう
 
+df <- df |> 
+  mutate(
+    pair = ifelse(v5_companions_cnt == "2人", 1, 0)
+  )
 
 
 ## v6----
@@ -563,20 +574,59 @@ df <- df |>
       v14_bid1_wtp == 100 & yes_no_pattern == "ny" ~ "50-100",
       v14_bid1_wtp == 100 & yes_no_pattern == "yn" ~ "100-300",
       v14_bid1_wtp == 100 & yes_no_pattern == "yy" ~ "300-",
-      v14_bid1_wtp == 300 & yes_no_pattern == "nn" ~ "0-300",
+      v14_bid1_wtp == 300 & yes_no_pattern == "nn" ~ "0-100",
       v14_bid1_wtp == 300 & yes_no_pattern == "ny" ~ "100-300",
       v14_bid1_wtp == 300 & yes_no_pattern == "yn" ~ "300-500",
       v14_bid1_wtp == 300 & yes_no_pattern == "yy" ~ "500-",
-      v14_bid1_wtp == 500 & yes_no_pattern == "nn" ~ "0-500",
+      v14_bid1_wtp == 500 & yes_no_pattern == "nn" ~ "0-300",
       v14_bid1_wtp == 500 & yes_no_pattern == "ny" ~ "300-500",
       v14_bid1_wtp == 500 & yes_no_pattern == "yn" ~ "500-1000",
       v14_bid1_wtp == 500 & yes_no_pattern == "yy" ~ "1000-",
-      v14_bid1_wtp == 1000 & yes_no_pattern == "nn" ~ "0-1000",
+      v14_bid1_wtp == 1000 & yes_no_pattern == "nn" ~ "0-500",
       v14_bid1_wtp == 1000 & yes_no_pattern == "ny" ~ "500-1000",
       v14_bid1_wtp == 1000 & yes_no_pattern == "yn" ~ "1000-1500",
       v14_bid1_wtp == 1000 & yes_no_pattern == "yy" ~ "1500-"
     )
   ) 
+
+
+## 区間回帰用LとU作成----
+
+df <- df |> 
+  mutate(
+    L = case_when(
+      wtp_interval == "0-100" ~ 0,
+      wtp_interval == "0-300" ~ 0,
+      wtp_interval == "0-50" ~ 0,
+      wtp_interval == "0-500" ~ 0,
+      wtp_interval == "100-300" ~ 100,
+      wtp_interval == "1000-" ~ 1000,
+      wtp_interval == "1000-1500" ~ 1000,
+      wtp_interval == "1500-" ~ 1500,
+      wtp_interval == "300-" ~ 300,
+      wtp_interval == "300-500" ~ 300,
+      wtp_interval == "50-100" ~ 50,
+      wtp_interval == "500-" ~ 500,
+      wtp_interval == "500-1000" ~ 500,
+      TRUE ~ NA_real_
+    ),
+    U = case_when(
+      wtp_interval == "0-100" ~ 100,
+      wtp_interval == "0-300" ~ 300,
+      wtp_interval == "0-50" ~ 50,
+      wtp_interval == "0-500" ~ 500,
+      wtp_interval == "100-300" ~ 300,
+      wtp_interval == "1000-" ~ Inf,
+      wtp_interval == "1000-1500" ~ 1500,
+      wtp_interval == "1500-" ~ Inf,
+      wtp_interval == "300-" ~ Inf,
+      wtp_interval == "300-500" ~ 500,
+      wtp_interval == "50-100" ~ 100,
+      wtp_interval == "500-" ~ Inf,
+      wtp_interval == "500-1000" ~ 1000,
+      TRUE ~ NA_real_
+    )
+  )
 
 ## v15----
 
@@ -621,6 +671,8 @@ df <- df |>
     # 2問目でいずれかに回答している（両方回答も含む）
     bid2_any_answer =
       as.integer(!is.na(v14_bid2_yes) | !is.na(v14_bid2_no)),
+    # 2問目で両方に回答している
+    bid2_both_answer = as.integer(!is.na(v14_bid2_yes) & !is.na(v14_bid2_no)),
     # 1問目回答して、2問目は未回答(これはシングルバウンドとして扱う)
     bid1_right_bid2_missing = 
       as.integer(!is.na(v14_bid1) & is.na(v14_bid2_yes) & is.na(v14_bid2_no)),

@@ -780,7 +780,7 @@ df |>
 
 ```{r}
 df |> 
-  ggplot(aes(x = wtp_interval)) +
+  ggplot(aes(y = wtp_interval)) +
   geom_bar()
 ```
 
