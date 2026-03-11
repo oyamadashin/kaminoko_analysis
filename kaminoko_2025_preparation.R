@@ -663,6 +663,22 @@ df <- df |>
   ) 
 # v15系質問で欠損ならpuristも欠損の方が良いのでna.rm = TRUEは使わない。
 
+
+### purist_dummy----
+df <- df |> 
+  mutate(
+    purist_dummy =
+      ifelse(purist > 24, 1, 0)
+  )
+
+
+### purist_dummy2----
+df <- df |> 
+  mutate(
+    purist_dummy2 =
+      ifelse(v15_critical_access_attitude + v15_critical_parking_attitude > 10, 1, 0)
+  )
+
 ## 欠損パターンをコーディング----
 
 ### 二肢選択質問の回答パターンを示すダミー---- 

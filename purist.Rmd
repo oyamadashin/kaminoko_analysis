@@ -85,7 +85,207 @@ plot(p$x[, 1], p$x[, 2])
 purist指標の方が分散が大きい→回答者のタイプの違いはおもにpurist指標で決まる。→では、v15系の合計値を今後の分析に使うので基本的にOKだろう。
 
 
+## purist, non-puristの分類
 
+puristポイントは最小で5、最大で35だ。だから、中間点は(35 + 5) / 2 = 20となる。
+
+```{r}
+df2 <- df |>
+  filter(date == "7月20-21日") 
+
+df2 |> 
+  ggplot(aes(x = purist)) +
+  geom_bar() +
+  scale_x_continuous(breaks = 1:35)
+  
+```
+ちょうど20が多いなあ。
+
+すべてで「どちらでもない」を選んだら20になる。だったら、20を超えたらpuristという風にする方が理に適っているか。
+
+### purist_dummy
+
+```{r}
+df2 |> 
+  mutate(
+    purist_dummy =
+      ifelse(purist > 20, 1, 0)
+  ) |> 
+  select(purist, purist_dummy)
+```
+
+
+このダミーに意味がありそうか、いろいろ試しにやってみよう。
+
+
+```{r}
+df2 <- df2 |> 
+  mutate(
+    purist_dummy =
+      ifelse(purist > 20, 1, 0)
+  )
+```
+
+
+```{r}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  v3_hokkaido + pair + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction + v9_general_satisfaction +    v13_citizen_consumer + purist_dummy + purist_dummy:v9_facility_satisfaction,
+  data = df2 |> filter(full_wtp_right == 1),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+puristの方が施設満足度を気にする傾向になっている…。
+
+
+でも、purist指標で施設に関連している質問は二つだけだよな。それらだけを足し合わせて指標を作った方がいいのかも。
+あと、サンプルに対して説明変数が多すぎる。市民選好は効いてないから外してもOKだと思う。
+puristの要件をもう少し厳しくしてもいいかも。
+
+```{r}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  v3_hokkaido + pair + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction + v9_general_satisfaction +  + purist_dummy + purist_dummy:v9_facility_satisfaction,
+  data = df2 |> filter(full_wtp_right == 1),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+市民選好を外した。あまり傾向に変化はない。
+
+
+### purist_dummy2
+
+```{r}
+df2 <- df2 |> 
+  mutate(
+    purist_dummy2 =
+      ifelse(purist > 24, 1, 0)
+  )
+```
+
+```{r}
+df2$purist_dummy2 |> table()
+```
+
+
+
+```{r}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  v3_hokkaido + pair + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction + v9_general_satisfaction +  + purist_dummy2 + purist_dummy2:v9_facility_satisfaction,
+  data = df2 |> filter(full_wtp_right == 1),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+
+purist要件を厳しくしたpurist_dummy2を使用。主効果も有意に近づいてるな。
+
+あと、駐車場とアクセスだけに限定したpurist指標も作ってみよう。最初はゆるめの指標
+
+
+```{r}
+(df2$v15_critical_access_attitude + df2$v15_critical_parking_attitude) |> 
+  hist()
+```
+
+### purist_dummy3
+
+```{r}
+df2 <- df2 |> 
+  mutate(
+    purist_dummy3 =
+      ifelse(v15_critical_access_attitude + v15_critical_parking_attitude > 8, 1, 0)
+  )
+```
+
+
+```{r}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  v3_hokkaido + pair + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction + v9_general_satisfaction +  + purist_dummy3 + purist_dummy3:v9_facility_satisfaction,
+  data = df2 |> filter(full_wtp_right == 1),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+傾向がぼやけた
+
+もう少し要件を厳しくしてみる
+
+### purist_dummy4
+
+```{r}
+df2 <- df2 |> 
+  mutate(
+    purist_dummy4 =
+      ifelse(v15_critical_access_attitude + v15_critical_parking_attitude > 10, 1, 0)
+  )
+```
+
+
+```{r}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  v3_hokkaido + pair + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction + v9_general_satisfaction +  + purist_dummy4 + purist_dummy4:v9_facility_satisfaction,
+  data = df2 |> filter(full_wtp_right == 1),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+
+傾向がさらに明確になった。
+
+いっそもっとダイレクトに、駐車場への抵抗感だけをダミーにしてみたら？
+
+
+### purist_dummy5
+
+```{r}
+df2 <- df2 |> 
+  mutate(
+    purist_dummy5 =
+      ifelse(v15_critical_parking_attitude > 4, 1, 0)
+  )
+```
+
+```{r}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  v3_hokkaido + pair + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction + v9_general_satisfaction +  + purist_dummy5 + purist_dummy5:v9_facility_satisfaction,
+  data = df2 |> filter(full_wtp_right == 1),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+
+傾向が消えた。もう少し要件を厳しくする。
+
+### purist_dummy6
+
+```{r}
+df2 <- df2 |> 
+  mutate(
+    purist_dummy6 =
+      ifelse(v15_critical_parking_attitude > 6, 1, 0)
+  )
+```
+
+```{r}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  v3_hokkaido + pair + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction + v9_general_satisfaction +  + purist_dummy6 + purist_dummy6:v9_facility_satisfaction,
+  data = df2 |> filter(full_wtp_right == 1),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+やっぱり傾向は消えたままだ。単独で使うより合成変数にした方が良いみたいだ。少なくとも、accessとparkingは相関が0.68以上でかなり大きいので、足すことには意味があると思う。
+
+### どのダミーを採用するか？
+→ purist_dummy2、purist_dummy4をそれぞれ、purist_dummy、purist_dummy2として使おう。
 
 # 池の要素の満足度との関係
 

@@ -13,6 +13,59 @@ source("kaminoko_2025_preparation.R")
 
 
 ```{r}
+df |> 
+  filter(!is.na(v11_revisit_intention)) |> 
+  ggplot(aes(x = v11_revisit_intention)) +
+  geom_bar(aes(y = after_stat(prop), group = 1))
+```
+
+
+```{r}
+df$v11_revisit_intention |> 
+  table()
+```
+
+
+```{r}
+df$v5_companions_cnt |> table()
+```
+
+
+```{r}
+df$v6_kaminoko_visits |> table()
+```
+
+
+```{r}
+df2 <- df |> 
+  mutate(
+    kaminoko_visit_dummy = ifelse(v6_kaminoko_visits == "はじめて", 1, 0)
+  )
+```
+
+```{r}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  v3_hokkaido  + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction + v9_general_satisfaction +  + purist_dummy + purist_dummy:v9_facility_satisfaction + purist_dummy:v9_tourist_spot_satisfaction,
+  data = df2 |> filter(full_wtp_right == 1 & date == "7月20-21日"),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+
+
+```{r}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  v3_hokkaido + v9_general_satisfaction +kaminoko_visit_dummy,
+  data = df2 |> filter(full_wtp_right == 1),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+
+
+```{r}
 df$v5_companions_cnt |> table()
 ```
 

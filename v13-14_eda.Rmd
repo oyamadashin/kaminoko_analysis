@@ -174,6 +174,8 @@ model |> summary()
 ```
 平均WTP＝中央値WTPは771円（切片）。
 
+
+
 ```{r}
 model <- survreg(
   Surv(L, U, type = "interval2") ~  v3_hokkaido + v9_general_satisfaction +  purist + v13_citizen_consumer,
@@ -315,6 +317,40 @@ model |> summary()
 7月データのみ。general_satisfactionが効かなくなったり、道内外の差がなくなったり、挙動がやっぱりおかしい。そもそもモデル自体有意でない。
 
 
+### purist_dummyとの交互効果
+
+```{r}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  v3_hokkaido + pair + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction + v9_general_satisfaction +  + purist_dummy + purist_dummy:v9_facility_satisfaction,
+  data = df |> filter(full_wtp_right == 1 & date == "7月20-21日"),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+purist_dummyは有意でないけど、係数はかなり大きい。また、施設満足度の主効果は有意でなくなっていて、交互効果の方に吸収されている。つまり、puristは施設に不満だとWTPが高くなるということだ。
+
+```{r}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  v3_hokkaido + pair + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction + v9_general_satisfaction +  + purist_dummy2 + purist_dummy2:v9_facility_satisfaction,
+  data = df |> filter(full_wtp_right == 1 & date == "7月20-21日"),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+
+purist_dummy2を使うともっと傾向が鮮明になる。交互効果は有意になるし。ただ、解釈がむずかしいなあ。
+
+```{r}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  v3_hokkaido + pair + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction + v9_general_satisfaction +  + purist_dummy + purist_dummy:v9_facility_satisfaction + purist_dummy:v9_tourist_spot_satisfaction,
+  data = df |> filter(full_wtp_right == 1 & date == "7月20-21日"),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
 
 ## 7月ダミーを使った分析
 

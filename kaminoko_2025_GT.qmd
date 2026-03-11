@@ -567,6 +567,14 @@ df |>
 
 ```{r}
 df |> 
+  filter(!is.na(v11_revisit_intention)) |> 
+  ggplot(aes(y = v11_revisit_intention)) +
+  geom_bar(aes(x = after_stat(prop), group = 1))
+```
+割合でみてみた。
+
+```{r}
+df |> 
   filter(date == "6月14-15日", !is.na(v3_hokkaido)) |> 
   mutate(
     v11_revisit_intention = factor(
@@ -812,7 +820,7 @@ df |>
   ggplot(aes(x = v2_gen, y = prop)) +
   geom_col()
 ```
-```{r full_wtp_right-v2_gen}
+```{r full_wtp_right-v2_gen-date}
 df |> 
   filter(!is.na(v2_gen)) |> 
   group_by(v2_gen, date) |> 
@@ -906,7 +914,7 @@ df |>
 df |> 
   group_by(date) |> 
   summarise(
-    prop = mean(bid1_none_bid2_both)
+    prop = mean(bid1_missing_bid2_both_answer)
   ) |> 
   ggplot(aes(x = date, y = prop)) +
   geom_col()
@@ -918,19 +926,19 @@ df |>
   filter(!is.na(v2_gen)) |> 
   group_by(v2_gen) |> 
   summarise(
-    prop = mean(bid1_none_bid2_both)
+    prop = mean(bid1_missing_bid2_both_answer)
   ) |> 
   ggplot(aes(x = v2_gen, y = prop)) +
   geom_col()
 ```
 
-```{r bid1_none_bid2_both-date}
+```{r bid1_missing_bid2_both-v2-date}
 # WTP質問で、1問目は未回答、2問目は両方回答
 df |> 
   filter(!is.na(v2_gen)) |> 
   group_by(v2_gen, date) |> 
   summarise(
-    prop = mean(bid1_none_bid2_both)
+    prop = mean(bid1_missing_bid2_both_answer)
   ) |> 
   ggplot(aes(x = v2_gen, y = prop)) +
   geom_col() +
@@ -959,7 +967,7 @@ df |>
   ggplot(aes(x = v2_gen, y = prop)) +
   geom_col()
 ```
-```{r full_wtp_missing-date}
+```{r full_wtp_missing-v2-date}
 # WTP質問で、1問目も2問目も未回答
 df |> 
   filter(!is.na(v2_gen)) |> 
