@@ -14,6 +14,7 @@ execute:
 
 ```{r source}
 # 前処理用ファイルをソースとする
+
 source("kaminoko_2025_preparation.R")
 ```
 
@@ -117,8 +118,482 @@ df |>
 ```
 
 -   欠損の内訳をみると、bid1_missing_only（1段階目は未回答で2段階目は適切に回答）が6割程度である。調査票では1段階目と区別するために2段階目の質問を枠で囲んだが、それにより1段階目が目立たなくなり、見過ごされた可能性がある。
--   また、bid1_missing_bid2_both_answer(1回目は未回答で2段階目は分岐後の質問に両方回答)は7月20-21日が欠損の2割以上を占めるが6月8日は1割に満たない。質問票の当該箇所のレイアウトは同じであるため、レイアウトによる影響とは考えにくい。虫の大量発生などの環境要因が考えられるが、特定は難しい。
+    -   このパターンの欠損に関しては、たとえば１段階目でyesを回答した場合の分岐ルートで２段階目に回答しているのであれば、1段階目はyesを回答しているとみなすといった解釈は可能であるが、そのような解釈は今回は取らないこととする。なぜなら、回答者が１段階目の問題を読んだ上で回答を省略しているのか、１段階目に気づかず２段階目に回答しているのか判別できないからである。
+-   また、bid1_missing_bid2_both_answer(1回目は未回答で2段階目は分岐後の質問に両方回答)は7月20-21日が欠損の3割近くを占めるが6月8日は1割に満たない。質問票の当該箇所のレイアウトは同じであるため、レイアウトによる影響とは考えにくい。虫の大量発生などの環境要因が考えられるが、特定は難しい。
+-   以下の分析ではCVM質問に適切に回答したサンプルのみを用いることにする。
 
 # 結果
 
 ## 基本属性情報
+
+-   まずは基本属性情報を示す。分析にはCVM適切回答者のデータのみを用いるが、データの限定による偏りの発生をチェックするため、全サンプルの基本属性情報と併記して示す。
+
+### 性別
+
+```{r v1}
+df |> 
+  filter(!is.na(v1_sex)) |> 
+  count(date, v1_sex) |> 
+  group_by(date) |> 
+  mutate(
+    prop = n / sum(n)
+  ) |> 
+  ggplot(aes(x = prop, y = v1_sex)) +
+  geom_col() +
+  facet_wrap(~date) +
+  labs(title = "性別割合（全サンプル）")
+
+```
+
+```{r v1-wtp_right}
+df |> 
+  filter(!is.na(v1_sex) & full_wtp_right == 1) |> 
+  count(date, v1_sex) |> 
+  group_by(date) |> 
+  mutate(
+    prop = n / sum(n)
+  ) |> 
+  ggplot(aes(x = prop, y = v1_sex)) +
+  geom_col() +
+  facet_wrap(~date) +
+  labs(title = "性別割合（CVM適切回答者のみ）")
+
+```
+
+-   男性女性は同程度。
+
+### 世代
+
+```{r v2-date-prop}
+df |> 
+  filter(!is.na(v2_gen)) |> 
+  count(date, v2_gen) |> 
+  group_by(date) |> 
+  mutate(
+    prop = n / sum(n)
+  ) |> 
+  ggplot(aes(x = prop, y = v2_gen)) +
+  geom_col() +
+  facet_wrap(~date) +
+  labs(title = "世代割合（全サンプル）")
+```
+
+```{r v2-date-prop-wtp_right}
+df |> 
+  filter(!is.na(v2_gen) & full_wtp_right == 1) |> 
+  count(date, v2_gen) |> 
+  group_by(date) |> 
+  mutate(
+    prop = n / sum(n)
+  ) |> 
+  ggplot(aes(x = prop, y = v2_gen)) +
+  geom_col() +
+  facet_wrap(~date) + 
+  labs(title = "世代割合（CVM適切回答者のみ）")
+```
+
+-   年代は日にちによって傾向が異なる。以下のように、6月8日は60代が25%程度でもっとも多いが、7月20-21日になると50代が30%程度でもっとも多くなる。7月は3連休に調査したため、仕事のある50代が訪れやすくなった可能性がある。20代は一貫して多めであり、時間に余裕がある学生や独身者が多いのためではないかと推察される。
+
+### 居住地
+
+```{r v3-date-prop}
+df |> 
+  filter(!is.na(v3_hokkaido)) |> 
+  count(v3_hokkaido, date) |> 
+  group_by(date) |> 
+  mutate(
+    prop = n / sum(n)
+  ) |> 
+  ggplot(aes(x = prop, y = v3_hokkaido)) +
+  geom_col() +
+  facet_wrap(~date) +
+  labs(title = "居住地（全サンプル）")
+```
+
+```{r  v3-date-prop-wtp_right}
+df |> 
+  filter(!is.na(v3_hokkaido) & full_wtp_right == 1) |> 
+  count(v3_hokkaido, date) |> 
+  group_by(date) |> 
+  mutate(
+    prop = n / sum(n)
+  ) |> 
+  ggplot(aes(x = prop, y = v3_hokkaido)) +
+  geom_col() +
+  facet_wrap(~date) +
+  labs(title = "居住地（CVM適切回答者のみ）")
+```
+
+-   居住地は、6月は道内のほうがやや多いが、7月は道外のほうがやや多くなる。これも、7月3連休の方が仕事のある人が訪問しやすくなるという考察と整合的である。
+
+### 北海道訪問回数
+
+```{r v4-date-prop}
+df |> 
+  filter(!is.na(v4_hokkaido_visits) & v3_hokkaido == "道外") |> 
+  count(v4_hokkaido_visits, date) |> 
+  group_by(date) |> 
+  mutate(
+    prop = n / sum(n)
+  ) |> 
+  ggplot(aes(x = prop, y = v4_hokkaido_visits)) +
+  geom_col() +
+  facet_wrap(~date) +
+  labs(title = "北海道訪問回数（全サンプル）")
+```
+
+```{r v4-date-prop-wtp_right}
+df |> 
+  filter(!is.na(v4_hokkaido_visits) & v3_hokkaido == "道外" & full_wtp_right == 1) |> 
+  count(v4_hokkaido_visits, date) |> 
+  group_by(date) |> 
+  mutate(
+    prop = n / sum(n)
+  ) |> 
+  ggplot(aes(x = prop, y = v4_hokkaido_visits)) +
+  geom_col() +
+  facet_wrap(~date) +
+  labs(title = "北海道訪問回数（CVM適切回答者のみ）")
+```
+
+-   北海道訪問回数は、4回目以上がもっとも多い。神の子池は北海道旅行をある程度経験した人が訪れる観光地であるといえる。ただし、7月の3連休になると3回目以下の割合がやや多くなる。連休でスケジュールに余裕があるため、他の主要な観光地とともに旅程に組み込みやすくなったのだと推測される。
+    -   7月データに関しては、CVM適切回答者の方が「3回目」の割合が10％多めになっている。
+
+### 何人連れか
+
+```{r v5-date-prop}
+df |> 
+  filter(!is.na(v5_companions_cnt)) |> 
+  count(v5_companions_cnt, date) |> 
+  group_by(date) |> 
+  mutate(
+    prop = n / sum(n)
+  ) |> 
+  ggplot(aes(x = prop, y = v5_companions_cnt)) +
+  geom_col() +
+  facet_wrap(~date) +
+  labs(title = "何人連れか（全サンプル）")
+```
+
+```{r v5-date-prop-wtp_right}
+df |> 
+  filter(!is.na(v5_companions_cnt) & full_wtp_right == 1) |> 
+  count(v5_companions_cnt, date) |> 
+  group_by(date) |> 
+  mutate(
+    prop = n / sum(n)
+  ) |> 
+  ggplot(aes(x = prop, y = v5_companions_cnt)) +
+  geom_col() +
+  facet_wrap(~date) +
+  labs(title = "何人連れか（CVM適切回答者のみ）")
+```
+
+-   どの日程でも2人連れが多い。ただし、7月の3連休には、3人連れ・4人連れもやや多くなっている。
+
+### 神の子訪問回数
+
+```{r v6-date-prop}
+df |> 
+  filter(!is.na(v6_kaminoko_visits)) |> 
+  count(v6_kaminoko_visits, date) |> 
+  group_by(date) |> 
+  mutate(
+    prop = n / sum(n)
+  ) |> 
+  ggplot(aes(x = prop, y = v6_kaminoko_visits)) +
+  geom_col() +
+  facet_wrap(~date) +
+  labs(title = "神の子訪問回数（全サンプル）")
+```
+
+```{r v6-date-prop-wtp_right}
+df |> 
+  filter(!is.na(v6_kaminoko_visits) & full_wtp_right == 1) |> 
+  count(v6_kaminoko_visits, date) |> 
+  group_by(date) |> 
+  mutate(
+    prop = n / sum(n)
+  ) |> 
+  ggplot(aes(x = prop, y = v6_kaminoko_visits)) +
+  geom_col() +
+  facet_wrap(~date) +
+  labs(title = "神の子訪問回数（CVM適切回答者のみ）")
+```
+
+-   「はじめて」という回答がどの日程でも６〜７割を占める。神の子池はリピーターを生むような観光地ではない傾向があるといえる。
+
+### 訪問きっかけ
+
+```{r v6-date}
+df |> 
+  filter(date != "7月20-21日" &  v6_kaminoko_visits == "はじめて") |> 
+  group_by(date) |> 
+  summarise(
+    web = mean(v7_web, na.rm = TRUE),
+    other_web = mean(v7_other_web, na.rm = TRUE),
+    web_reviews = mean(v7_web_reviews, na.rm = TRUE),
+    tv = mean(v7_tv, na.rm = TRUE),
+    travel_agency = mean(v7_travel_agency, na.rm = TRUE),
+    magazine = mean(v7_magazine, na.rm = TRUE),
+    companion_suggestion = mean(v7_companion_suggestion, na.rm = TRUE),
+    non_companion_info = mean(v7_non_companion_info, na.rm = TRUE),
+    .groups = "drop"
+  ) |> 
+  pivot_longer(
+    -date,
+    names_to = "choice",
+    values_to = "prop"
+  ) |> 
+  ggplot(aes(x = prop, y = choice)) +
+  geom_col() +
+  facet_wrap(~date) +
+  labs(title = "神の子訪問きっかけ（全サンプル）")
+```
+
+```{r v6-date-wtp_right}
+df |> 
+  filter(date != "7月20-21日" & v6_kaminoko_visits == "はじめて" & full_wtp_right == 1) |> 
+  group_by(date) |> 
+  summarise(
+    web = mean(v7_web, na.rm = TRUE),
+    other_web = mean(v7_other_web, na.rm = TRUE),
+    web_reviews = mean(v7_web_reviews, na.rm = TRUE),
+    tv = mean(v7_tv, na.rm = TRUE),
+    travel_agency = mean(v7_travel_agency, na.rm = TRUE),
+    magazine = mean(v7_magazine, na.rm = TRUE),
+    companion_suggestion = mean(v7_companion_suggestion, na.rm = TRUE),
+    non_companion_info = mean(v7_non_companion_info, na.rm = TRUE),
+    .groups = "drop"
+  ) |> 
+  pivot_longer(
+    -date,
+    names_to = "choice",
+    values_to = "prop"
+  ) |> 
+  ggplot(aes(x = prop, y = choice)) +
+  geom_col() +
+  facet_wrap(~date) +
+  labs(title = "神の子訪問きっかけ（CVM適切回答者のみ）")
+```
+
+-   ７月はこの質問を省略しているため６月のデータのみを示す。
+-   6月14-15日は同行者の提案、雑誌がやや多めになる。
+
+```{r v6-v3}
+df |> 
+  filter(!is.na(v3_hokkaido) & v6_kaminoko_visits == "はじめて") |> 
+  group_by(v3_hokkaido) |> 
+  summarise(
+    web = mean(v7_web, na.rm = TRUE),
+    other_web = mean(v7_other_web, na.rm = TRUE),
+    web_reviews = mean(v7_web_reviews, na.rm = TRUE),
+    tv = mean(v7_tv, na.rm = TRUE),
+    travel_agency = mean(v7_travel_agency, na.rm = TRUE),
+    magazine = mean(v7_magazine, na.rm = TRUE),
+    companion_suggestion = mean(v7_companion_suggestion, na.rm = TRUE),
+    non_companion_info = mean(v7_non_companion_info, na.rm = TRUE),
+    .groups = "drop"
+  ) |> 
+  pivot_longer(
+    -v3_hokkaido,
+    names_to = "choice",
+    values_to = "prop"
+  ) |> 
+  ggplot(aes(x = prop, y = choice)) +
+  geom_col() +
+  facet_wrap(~v3_hokkaido) +
+  labs(title = "神の子訪問きっかけ・道内外比較（全サンプル）")
+```
+
+```{r v6-v3-wtp_right}
+df |> 
+  filter(!is.na(v3_hokkaido) & v6_kaminoko_visits == "はじめて" & full_wtp_right == 1) |> 
+  group_by(v3_hokkaido) |> 
+  summarise(
+    web = mean(v7_web, na.rm = TRUE),
+    other_web = mean(v7_other_web, na.rm = TRUE),
+    web_reviews = mean(v7_web_reviews, na.rm = TRUE),
+    tv = mean(v7_tv, na.rm = TRUE),
+    travel_agency = mean(v7_travel_agency, na.rm = TRUE),
+    magazine = mean(v7_magazine, na.rm = TRUE),
+    companion_suggestion = mean(v7_companion_suggestion, na.rm = TRUE),
+    non_companion_info = mean(v7_non_companion_info, na.rm = TRUE),
+    .groups = "drop"
+  ) |> 
+  pivot_longer(
+    -v3_hokkaido,
+    names_to = "choice",
+    values_to = "prop"
+  ) |> 
+  ggplot(aes(x = prop, y = choice)) +
+  geom_col() +
+  facet_wrap(~v3_hokkaido) +
+  labs(title = "神の子訪問きっかけ・道内外比較（CVM適切回答者のみ）")
+```
+
+-   神の子訪問きっかけは、道内はネットの口コミ、同行者の提案が多い。道外は雑誌がやや多い。
+
+### 神の子池への満足度
+
+```{r v9-boxplot}
+df |> 
+  pivot_longer(
+    cols = starts_with("v9_"),
+    names_to = "satis_content",
+    values_to = "value"
+  ) |> 
+  ggplot(aes(x = value, y = satis_content)) + 
+  geom_boxplot(na.rm = TRUE) +
+  scale_x_continuous(breaks = 1:10) + 
+  labs(title = "神の子訪問満足度（全サンプル）")
+```
+```{r v9-boxplot-wtp_right}
+df |> 
+  filter(full_wtp_right == 1) |> 
+  pivot_longer(
+    cols = starts_with("v9_"),
+    names_to = "satis_content",
+    values_to = "value"
+  ) |> 
+  ggplot(aes(x = value, y = satis_content)) + 
+  geom_boxplot(na.rm = TRUE) +
+  scale_x_continuous(breaks = 1:10) + 
+  labs(title = "神の子訪問満足度（CVM適切回答者のみ）")
+```
+- 景色満足度がもっとも高く、次に総合満足度が高い(これらは天井効果が出ているように思われる)。それ以外の満足度は低く、とくに施設満足度は低い。
+
+```{r v9-boxplot-date-wtp_right}
+df |> 
+  filter(full_wtp_right == 1) |> 
+  pivot_longer(
+    cols = starts_with("v9_"),
+    names_to = "satis_content",
+    values_to = "value"
+  ) |> 
+  ggplot(aes(x = value, y = satis_content)) + 
+  geom_boxplot(na.rm = TRUE) +
+  scale_x_continuous(breaks = 1:10) + 
+  facet_wrap(~date) +
+  labs(title = "神の子訪問満足度・調査日別（CVM適切回答者のみ）")
+```
+- 調査日別の満足度の傾向を示した。総合満足度の天井効果が目立つのは６月14-15日。7月20-21日は虫が大量発生したが、満足度が大きく低下しているようには見えない。
+
+```{r v9-boxplot-v3-wtp_right}
+df |> 
+  filter(full_wtp_right == 1 & !is.na(v3_hokkaido)) |> 
+  pivot_longer(
+    cols = starts_with("v9_"),
+    names_to = "satis_content",
+    values_to = "value"
+  ) |> 
+  ggplot(aes(x = value, y = satis_content)) + 
+  geom_boxplot(na.rm = TRUE) +
+  scale_x_continuous(breaks = 1:10) + 
+  facet_wrap(~v3_hokkaido) +
+  labs(title = "神の子訪問満足度・居住地別（CVM適切回答者のみ）")
+```
+- 総合満足度については道内居住者の方が天井効果を起こしている。道外居住者は満足度8のあたりに集中する傾向。
+
+
+### 神の子池のどの側面に満足しているか（７月のみ）
+
+```{r v10-boxplot}
+df |> 
+  pivot_longer(
+    cols = starts_with("v10_"),
+    names_to = "satis_content",
+    values_to = "value"
+  ) |> 
+  ggplot(aes(x = value, y = satis_content)) + 
+  geom_boxplot(na.rm = TRUE) +
+  scale_x_continuous(breaks = 1:10) + 
+  labs(title = "神の子の側面別満足度（全サンプル）")
+```
+```{r v10-boxplot-wtp_right}
+df |> 
+  filter(full_wtp_right == 1) |> 
+  pivot_longer(
+    cols = starts_with("v10_"),
+    names_to = "satis_content",
+    values_to = "value"
+  ) |> 
+  ggplot(aes(x = value, y = satis_content)) + 
+  geom_boxplot(na.rm = TRUE) +
+  scale_x_continuous(breaks = 1:10) + 
+  labs(title = "神の子の側面別満足度（CVM適切回答者のみ）")
+```
+- どれも天井効果を起こしている。特に「池自体の美しさへの満足度」「周囲の森の豊かさへの満足度」は中央値が最大の10となっており、変数としてはあまり有用でない可能性がある。
+
+
+### 交流意図(７月調査以外)
+
+```{r v12}
+df |> 
+  filter(date != "7月20-21日") |> 
+  pivot_longer(
+    cols = c("v12_interact_by_event", "v12_interact_by_market", "v12_interact_by_guesthouse", "v12_unwilling_to_interact", "v12_unaware_of_location"),
+    names_to = "interact",
+    values_to = "yes"
+  ) |> 
+  filter(!is.na(yes)) |> 
+  count(interact, yes) |> 
+  group_by(interact) |> 
+  mutate(
+    prop = n / sum(n)
+  ) |> 
+  filter(yes == 1) |> 
+  ggplot(aes(x = prop, y = interact)) +
+  geom_col() +
+  scale_x_continuous(breaks = seq(0, 0.6, by = 0.05)) +
+  labs(title = "交流意図割合（全サンプル）")
+```
+
+```{r v12-wtp_right}
+df |> 
+  filter(date != "7月20-21日" & full_wtp_right == 1) |> 
+  pivot_longer(
+    cols = c("v12_interact_by_event", "v12_interact_by_market", "v12_interact_by_guesthouse", "v12_unwilling_to_interact", "v12_unaware_of_location"),
+    names_to = "interact",
+    values_to = "yes"
+  ) |> 
+  filter(!is.na(yes)) |> 
+  count(interact, yes) |> 
+  group_by(interact) |> 
+  mutate(
+    prop = n / sum(n)
+  ) |> 
+  filter(yes == 1) |> 
+  ggplot(aes(x = prop, y = interact)) +
+  geom_col() +
+  scale_x_continuous(breaks = seq(0, 0.6, by = 0.05)) +
+  labs(title = "交流意図割合（CVM適切回答者のみ）")
+```
+- 直売で商品を見てみたいという人が半数以上。交流したくない人は15%程度、神の子池が清里町にあると意識していなかった人が20%。
+
+```{r v12-v5-wtp_right}
+df |> 
+  filter(date != "7月20-21日" & full_wtp_right == 1 & !is.na(v3_hokkaido)) |> 
+  pivot_longer(
+    cols = c("v12_interact_by_event", "v12_interact_by_market", "v12_interact_by_guesthouse", "v12_unwilling_to_interact", "v12_unaware_of_location"),
+    names_to = "interact",
+    values_to = "yes"
+  ) |> 
+  filter(!is.na(yes)) |> 
+  count(v3_hokkaido, interact, yes) |> 
+  group_by(interact, v3_hokkaido) |> 
+  mutate(
+    prop = n / sum(n)
+  ) |> 
+  ungroup() |> 
+  filter(yes == 1) |> 
+  ggplot(aes(x = prop, y = interact)) +
+  geom_col() +
+  scale_x_continuous(breaks = seq(0, 0.6, by = 0.10)) +
+  labs(title = "交流意図割合・居住地別（CVM適切回答者のみ）") +
+  facet_wrap(~v3_hokkaido)
+```
+- 神の子池が清里町にあると意識していなかったという人は道外だと25%に達する。また、イベントで交流したいという人は道外は少なめ（10%）になる。
+
+
+

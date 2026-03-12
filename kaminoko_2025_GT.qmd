@@ -62,6 +62,19 @@ df |>
 
 \[2\] 7月の方が50代が多い。6月は10代がかなり少ない（まだ夏休み前だとは思うが）。
 
+```{r v2-date-prop}
+df |> 
+  filter(!is.na(v2_gen)) |> 
+  count(date, v2_gen) |> 
+  group_by(date) |> 
+  mutate(
+    prop = n / sum(n)
+  ) |> 
+  ggplot(aes(x = prop, y = v2_gen)) +
+  geom_col() +
+  facet_wrap(~date)
+```
+
 ## v3(居住地)
 
 ```{r}
@@ -80,6 +93,20 @@ df |>
 ```
 
 \[4\] 7月の方が道外がやや多い（夏休みだからか→7月は三連休だから）
+
+```{r v3-date-prop}
+df |> 
+  filter(!is.na(v3_hokkaido)) |> 
+  count(v3_hokkaido, date) |> 
+  group_by(date) |> 
+  mutate(
+    prop = n / sum(n)
+  ) |> 
+  ggplot(aes(x = prop, y = v3_hokkaido)) +
+  geom_col() +
+  facet_wrap(~date)
+```
+7月21日は道外がやや多い
 
 ## v4(北海道訪問回数)
 
@@ -103,6 +130,19 @@ df |>
 ```
 
 7月調査の方が3回目が多め。
+
+```{r v4-date-prop}
+df |> 
+  filter(!is.na(v4_hokkaido_visits) & v3_hokkaido == "道外") |> 
+  count(v4_hokkaido_visits, date) |> 
+  group_by(date) |> 
+  mutate(
+    prop = n / sum(n)
+  ) |> 
+  ggplot(aes(x = prop, y = v4_hokkaido_visits)) +
+  geom_col() +
+  facet_wrap(~date)
+```
 
 ```{r}
 
@@ -231,7 +271,7 @@ df |>
 
 ```{r}
 df |> 
-  filter(!is.na(v3_hokkaido)) |> 
+  filter(!is.na(v3_hokkaido) & v6_kaminoko_visits == "はじめて") |> 
   group_by(v3_hokkaido) |> 
   summarise(
     web = sum(v7_web, na.rm = TRUE),
