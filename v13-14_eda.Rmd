@@ -352,6 +352,23 @@ model <- survreg(
 model |> summary()
 ```
 
+```{r purist_dummy-v9-boxplot}
+df |> 
+  filter(full_wtp_right == 1 & !is.na(purist_dummy)) |> 
+  pivot_longer(
+    cols = starts_with("v9_"),
+    names_to = "satis_content",
+    values_to = "value"
+  ) |> 
+  ggplot(aes(x = value, y = satis_content)) + 
+  geom_boxplot(na.rm = TRUE) +
+  scale_x_continuous(breaks = 1:10) + 
+  facet_wrap(~purist_dummy) +
+  labs(title = "神の子訪問満足度・purist_dummy別（CVM適切回答者のみ）")
+```
+puristの方が周辺スポット満足度が高い　→　おそらく、puristとnon-puristとで、「周辺観光スポット」の意味がちがうのではないか。puristの方は周囲に自然が多いので、充実していると感じ、そうした自然の一部である神の子池により多くのお金を出したくなる。しかしnon-puristはむしろ施設や飲食店を観光スポットと考えているから、観光スポットがないと感じる。
+また，puristの方が施設満足度の上幅がやや高い。つまり、現在の施設にそこそこ満足しているということだろう。だから、施設整備のためにお金を出すのをためらう、という発想をするのではないか。
+
 ## 7月ダミーを使った分析
 
 ```{r}

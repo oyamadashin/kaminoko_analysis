@@ -14,6 +14,22 @@ source("kaminoko_2025_preparation.R")
 
 ```{r}
 df |> 
+  filter(full_wtp_right == 1 & !is.na(purist_dummy)) |> 
+  pivot_longer(
+    cols = starts_with("v9_"),
+    names_to = "satis_content",
+    values_to = "value"
+  ) |> 
+  ggplot(aes(x = value, y = satis_content)) + 
+  geom_boxplot(na.rm = TRUE) +
+  scale_x_continuous(breaks = 1:10) + 
+  facet_wrap(~purist_dummy) +
+  labs(title = "神の子訪問満足度・purist_dummy別（CVM適切回答者のみ）")
+```
+
+
+```{r}
+df |> 
   filter(!is.na(v11_revisit_intention)) |> 
   ggplot(aes(x = v11_revisit_intention)) +
   geom_bar(aes(y = after_stat(prop), group = 1))
