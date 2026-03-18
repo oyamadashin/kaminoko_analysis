@@ -448,6 +448,7 @@ df |>
   scale_x_continuous(breaks = 1:10) + 
   labs(title = "神の子訪問満足度（全サンプル）")
 ```
+
 ```{r v9-boxplot-wtp_right}
 df |> 
   filter(full_wtp_right == 1) |> 
@@ -461,7 +462,8 @@ df |>
   scale_x_continuous(breaks = 1:10) + 
   labs(title = "神の子訪問満足度（CVM適切回答者のみ）")
 ```
-- 景色満足度がもっとも高く、次に総合満足度が高い(これらは天井効果が出ているように思われる)。それ以外の満足度は低く、とくに施設満足度は低い。
+
+-   景色満足度がもっとも高く、次に総合満足度が高い(これらは天井効果が出ているように思われる)。それ以外の満足度は低く、とくに施設満足度は低い。
 
 ```{r v9-boxplot-date-wtp_right}
 df |> 
@@ -477,7 +479,8 @@ df |>
   facet_wrap(~date) +
   labs(title = "神の子訪問満足度・調査日別（CVM適切回答者のみ）")
 ```
-- 調査日別の満足度の傾向を示した。総合満足度の天井効果が目立つのは６月14-15日。7月20-21日は虫が大量発生したが、満足度が大きく低下しているようには見えない。
+
+-   調査日別の満足度の傾向を示した。総合満足度の天井効果が目立つのは６月14-15日。7月20-21日は虫が大量発生したが、満足度が大きく低下しているようには見えない。
 
 ```{r v9-boxplot-v3-wtp_right}
 df |> 
@@ -493,8 +496,8 @@ df |>
   facet_wrap(~v3_hokkaido) +
   labs(title = "神の子訪問満足度・居住地別（CVM適切回答者のみ）")
 ```
-- 総合満足度については道内居住者の方が天井効果を起こしている。道外居住者は満足度8のあたりに集中する傾向。
 
+-   総合満足度については道内居住者の方が天井効果を起こしている。道外居住者は満足度8のあたりに集中する傾向。
 
 ### 神の子池のどの側面に満足しているか（７月のみ）
 
@@ -510,6 +513,7 @@ df |>
   scale_x_continuous(breaks = 1:10) + 
   labs(title = "神の子の側面別満足度（全サンプル）")
 ```
+
 ```{r v10-boxplot-wtp_right}
 df |> 
   filter(full_wtp_right == 1) |> 
@@ -523,7 +527,8 @@ df |>
   scale_x_continuous(breaks = 1:10) + 
   labs(title = "神の子の側面別満足度（CVM適切回答者のみ）")
 ```
-- どれも天井効果を起こしている。特に「池自体の美しさへの満足度」「周囲の森の豊かさへの満足度」は中央値が最大の10となっており、変数としてはあまり有用でない可能性がある。
+
+-   どれも天井効果を起こしている。特に「池自体の美しさへの満足度」「周囲の森の豊かさへの満足度」は中央値が最大の10となっており、変数としてはあまり有用でない可能性がある。(→だから使わない)
 
 
 ### 交流意図(７月調査以外)
@@ -569,7 +574,8 @@ df |>
   scale_x_continuous(breaks = seq(0, 0.6, by = 0.05)) +
   labs(title = "交流意図割合（CVM適切回答者のみ）")
 ```
-- 直売で商品を見てみたいという人が半数以上。交流したくない人は15%程度、神の子池が清里町にあると意識していなかった人が20%。
+
+-   直売で商品を見てみたいという人が半数以上。交流したくない人は15%程度、神の子池が清里町にあると意識していなかった人が20%。
 
 ```{r v12-v5-wtp_right}
 df |> 
@@ -593,7 +599,157 @@ df |>
   labs(title = "交流意図割合・居住地別（CVM適切回答者のみ）") +
   facet_wrap(~v3_hokkaido)
 ```
-- 神の子池が清里町にあると意識していなかったという人は道外だと25%に達する。また、イベントで交流したいという人は道外は少なめ（10%）になる。
 
+-   神の子池が清里町にあると意識していなかったという人は道外だと25%に達する。また、イベントで交流したいという人は道外は少なめ（10%）になる。
+
+
+### 支払意思
+
+```{r yes_no_pattern}
+df |> 
+  count(v14_bid1_wtp, yes_no_pattern) |> 
+  pivot_wider(names_from = yes_no_pattern, values_from = n)
+```
+```{r yes_no_pattern-percent}
+df |> 
+  count(v14_bid1_wtp, yes_no_pattern) |>
+  mutate(yes_no_pattern = ifelse(is.na(yes_no_pattern), "na", yes_no_pattern)) |> 
+  group_by(v14_bid1_wtp) |> 
+  mutate(percent = round(n / sum(n)  * 100, 1)) |>  # パーセント表記
+  pivot_wider(
+    id_cols = v14_bid1_wtp,
+    names_from = yes_no_pattern, 
+    values_from = percent)
+```
+- パーセントで回答割合を表記した。
+- yyは一段階目提示金額が大きくなるほど割合が減っている。これは正常。
+- nnは基本的に一段階目提示金額が大きいほど割合が増えるが、500円から1000円に移行する段階で割合が減る。一段階目提示金額が1000円の場合、nyが26.0%でもっとも割合が大きい。初回で大きめの金額を提示すると、それを断った回答者にとっては、二段階目の提示金額500円が安いと感じやすくなるのではないか。つまり、一段階目から二段階目への金額減少幅が「500円」とかなり大きいので、アンカリング効果により安いと感じ、受け入れやすくなったのではないか。
+- 欠損は一段階目提示額100円と1000円のそれぞれでもっとも大きく、40%に達する。金額が低すぎても高すぎても回答者は真面目に回答する動機を失うということだろうか。
+
+
+```{r v14_bid1_distribution}
+df |> 
+  filter(!is.na(v14_bid1) & !is.na(wtp_interval)) |> 
+  group_by(v14_bid1_wtp) |> 
+  summarise(
+    yes_rate = mean(v14_bid1 == "支払う"),
+    n = n(),
+    yes_n = round(n * yes_rate)
+  ) |> 
+  ggplot(aes(x = v14_bid1_wtp, y = yes_rate)) +
+  geom_point(size = 2) +
+  geom_line() +
+  geom_text(aes(label = paste0(yes_n, "/", n, "人")), vjust = -0.7, size = 3) +
+  scale_x_continuous(breaks = seq(0, 1000, by = 100)) +
+  scale_y_continuous(labels = scales::percent) +
+  coord_cartesian(clip = "off") +
+  theme(plot.margin = margin(5.5, 20, 5.5, 5.5)) +
+  labs(title = "一段階目提示金額に対するyes割合の分布（CVM適切回答者のみ）")
+```
+一段階目提示金額に対するyes率分布。きれいに右下がりになっている
+
+```{r v14_bid2_yes_distribution}
+df |> 
+  filter(!is.na(v14_bid2_yes) & !is.na(wtp_interval)) |> 
+  group_by(v14_bid2_yes_wtp) |> 
+  summarise(
+    yes_rate = mean(v14_bid2_yes == "支払う"),
+    n = n(),
+    yes_n = round(n * yes_rate)
+  ) |> 
+  ggplot(aes(x = v14_bid2_yes_wtp, y = yes_rate)) +
+  geom_point(size = 2) +
+  geom_line() +
+  geom_text(aes(label = paste0(yes_n, "/", n, "人")), vjust = -0.7, size = 3) +
+  scale_x_continuous(breaks = seq(0, 1500, by = 100)) + 
+  scale_y_continuous(labels = scales::percent) +
+  coord_cartesian(clip = "off") +
+  theme(plot.margin = margin(5.5, 20, 5.5, 5.5)) +
+  labs(title = "二段階目提示金額に対するyes割合の分布（一段階目yes & CVM適切回答者のみ）")
+```
+
+- 二段階目（一段階目yes回答者のみ）のyes率分布。1000円までは右下がりだが、1500円で逆に右上がりになっている。
+- 1500円は回答者が33人であり、他の金額の場合の半分程度である。二段階目1500円の回答者の初回提示金額は1000円である。多くの回答者が1000円の提示金額に対してnoと回答したため、1500円の回答者が減少したものと思われる。回答者が少ないため、yes率が不安定になった可能性がある。
+- 別の解釈としては、一段階目提示金額から二段階目に移行する際の金額変化の大きさが影響している可能性がある。一段階目でyesと回答した場合、二段階目への金額変化は「500→1000」「1000→1500」である。1000円から1500円への変化は1.5倍だが、500円から1000円への変化は2倍である。変化としては500円から1000円への変化の方が大きく感じられ、yes率が低くなったのかもしれない。ただし、低金額帯では100円から300円と3倍変化していてもyes率がそれほど低くなっておらず、変化割合と金額の組み合わせで反応が異なっている可能性も考えられる。
+
+```{r v14_bid2_no_distribution}
+df |> 
+  filter(!is.na(v14_bid2_no) & !is.na(wtp_interval)) |> 
+  group_by(v14_bid2_no_wtp) |> 
+  summarise(
+    yes_rate = mean(v14_bid2_no == "支払う"),
+    n = n(),
+    yes_n = round(yes_rate * n)
+  ) |> 
+  ggplot(aes(x = v14_bid2_no_wtp, y = yes_rate)) +
+  geom_point( size = 2) +
+  geom_line() +
+  geom_text(aes(label = paste0(yes_n, "/", n, "人")), vjust = -0.7, size = 3) +
+  scale_x_continuous(breaks = seq(0, 1500, by = 100)) + 
+  scale_y_continuous(labels = scales::percent)  +
+  coord_cartesian(clip = "off") +
+  theme(plot.margin = margin(5.5, 20, 5.5, 5.5))+
+  labs(title = "二段階目提示金額に対するyes割合の分布（一段階目no & CVM適切回答者のみ）")
+
+```
+
+- 一段階目noの回答者の二段階目のyes率を示した分布である。右下がりからかなり崩れている。低価格帯では回答者自体がかなり少ないので、yes率が不安定になっていると思われる。
+- 500円では回答者の数が41名とそれなりに多い。最高金額であるにも関わらずyes率がもっとも大きいのは、他の価格帯の回答者数が少なく不安定な結果であるためであるとも解釈できる。別の解釈としては、一段階目で1000円を提示されてnoと回答し、二段階目で500円を提示された回答者にとっては、1000円から500円への金額の減少幅が比較的大きく感じられyesと回答しやすくなったというものが考えられる。いずれにしても全体的に回答者数が少ないので解釈は慎重にするべきである。
+
+
+## 訪問満足度の規定要因
+
+```{r v9-regression}
+
+result <- lm(v9_general_satisfaction ~ v9_scenery_satisfaction + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction, data = df) 
+
+result |> summary()
+```
+
+```{r v9-regression-wtp_right}
+
+result <- lm(v9_general_satisfaction ~ v9_scenery_satisfaction + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction, data = df |> filter(full_wtp_right == 1) )
+
+result |> summary()
+```
+- 総合満足度は景色満足度でだいたい決まってくる（景色満足度が1大きくなると総合満足度が0.68大きくなる）。決定係数も0.678と大きい。
+- 次に大きいのは周囲の観光スポットの満足度。
+- アクセス満足度も有意ではあるが、係数の大きさは景色満足度の10％程度である（アクセス満足度が1大きくなっても、総合満足度は0.067しか大きくならない）
+- 施設満足度は全サンプルを入れた分析では10%水準有意だが、CVM質問に適切に回答しているサンプルのみを使うと有意判定がはずれる。また、いずれにしても係数はアクセス満足度よりさらに小さい。
+- したがって、整備によりアクセスや施設を改善し訪問者の利便性を高めたとしても、訪問の総合満足度にはあまり寄与しないと考えられる。
+- ただし、景色満足度と総合満足度は天井効果が発生しているように思われる。これらをダミー化して分析し直してみる（10であれば1, 1～9であれば0とする）。
+
+```{r v9_dummy-logit_regression-wtp_right}
+
+df2 <- df |> 
+  mutate(
+    general_dummy = case_when(
+      v9_general_satisfaction == 10 ~ 1,
+      v9_general_satisfaction %in% 1:9 ~ 0,
+      is.na(v9_general_satisfaction) ~ NA_integer_
+    ),
+    scenery_dummy  = case_when(
+      v9_scenery_satisfaction == 10 ~ 1,
+      v9_scenery_satisfaction %in% 1:9 ~ 0,
+      is.na(v9_scenery_satisfaction) ~ NA_integer_)
+  )
+
+
+result <- lm(general_dummy ~ scenery_dummy + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction, data = df2 |> filter(full_wtp_right == 1) ,
+             family = binomial(link = "Logit"))
+
+result |> summary()
+
+```
+
+総合満足度と景色満足度をダミー変数化してロジスティック回帰。景色は有意のままで、他の変数の有意判定が変わっている。
+
+```{r odds-v9_dummy-logit_regression-wtp_right}
+exp(coef(result))
+```
+
+オッズ比。景色ダミー以外はだいたい1のあたりなので、総合満足度に影響しない傾向。やはり景色満足度で総合満足度はだいたい決まってしまうようだ。
+
+## 手つかず志向指標の作成
 
 

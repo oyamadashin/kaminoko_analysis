@@ -158,6 +158,22 @@ df |>
   pivot_wider(names_from = yes_no_pattern, values_from = n)
 ```
 
+```{r yes_no_pattern-percent}
+df |> 
+  count(v14_bid1_wtp, yes_no_pattern) |>
+  mutate(yes_no_pattern = ifelse(is.na(yes_no_pattern), "na", yes_no_pattern)) |> 
+  group_by(v14_bid1_wtp) |> 
+  mutate(percent = round(n / sum(n)  * 100, 1)) |>  # パーセント表記
+  pivot_wider(
+    id_cols = v14_bid1_wtp,
+    names_from = yes_no_pattern, 
+    values_from = percent)
+```
+- パーセントで回答割合を表記した。
+- yyは初回提示金額が大きくなるほど割合が減る。これは正常。
+- nnは基本的に初回提示金額が大きいほど割合が増えるが、500円から1000円に移行する段階で割合が減る。初回提示金額が1000円の場合、nyが26.0%でもっとも割合が大きい。初回で大きめの金額を提示すると、それを断った回答者にとっては、二段階目の提示金額500円が安いと感じやすくなるのではないか。つまり、一段階目から二段階目への金額減少幅が「500円」とかなり大きいので、アンカリング効果により安いと感じ、受け入れやすくなったのではないか。
+- 欠損は初回提示額100円と1000円のそれぞれでもっとも大きく、40%に達する。金額が低すぎても高すぎても回答者は真面目に回答する動機を失うということだろうか。
+
 # 区間回帰
 
 ## 全日程データ使用
