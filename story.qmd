@@ -697,6 +697,115 @@ df |>
 - 500円では回答者の数が41名とそれなりに多い。最高金額であるにも関わらずyes率がもっとも大きいのは、他の価格帯の回答者数が少なく不安定な結果であるためであるとも解釈できる。別の解釈としては、一段階目で1000円を提示されてnoと回答し、二段階目で500円を提示された回答者にとっては、1000円から500円への金額の減少幅が比較的大きく感じられyesと回答しやすくなったというものが考えられる。いずれにしても全体的に回答者数が少ないので解釈は慎重にするべきである。
 
 
+### 手つかず志向指標
+
+手つかず志向（purism）に関連する質問の回答傾向を確認する。これらの質問は、基本的にVistad &  Vorkinn (2012)による簡易版手つかず志向尺度（wilderness purism scale）の8項目の尺度を参考にして作成した。ただし、神の子池の特徴に適さない質問もあるため、適宜修正や取捨選択を行っている。
+「there are huts/lodges where food is served and where you can stay overnight in made beds」→売店に関する質問にアレンジ
+「you meet a lot of other visitors during the trip」→観光客の多さに関する質問にアレンジ
+「you can hike for hours without meeting anyone」→（同上）
+「there are plain campsites with toilets, firewood, fire rings and bins」→駐車場整備に関する質問にアレンジ
+「you can dispose of litter in bins along the way」→神の子池は長時間散策する観光地ではないので省略
+「there are marked trails in the area」→（同上）
+「trailheads and crossroads are well signposted」→（同上）
+「boardwalks are provided in wet marshes」→（同上）
+
+また、Sæþórsdóttir(2010)はこれら8項目以外も含む全14項目の尺度を用いている。その中で、「Special markings on places of interest」を、「美しい写真が撮れるスポットには目印の看板が設置されている」という内容で採用した。これは、神の子池にもそのような看板を設置する余地はあるからである。
+
+
+```{r v15-bar}
+p1 <- df |> 
+  filter(!is.na(v15_critical_access_attitude)) |> 
+  ggplot(aes(x = v15_critical_access_attitude)) +
+  geom_bar() + 
+  scale_x_continuous(breaks = 1:7) +
+  labs(title = "広い道路は妨げ(全サンプル)") +
+  xlab("妨げ度合い") 
+
+p2 <- df |> 
+  filter(!is.na(v15_critical_parking_attitude)) |> 
+  ggplot(aes(x = v15_critical_parking_attitude)) +
+  geom_bar() + 
+  scale_x_continuous(breaks = 1:7) +
+  labs(title = "広い駐車場は妨げ(全サンプル)") +
+  xlab("妨げ度合い") 
+
+p3 <- df |> 
+  filter(!is.na(v15_critical_crowd_attitude)) |> 
+  ggplot(aes(x = v15_critical_crowd_attitude)) +
+  geom_bar() + 
+  scale_x_continuous(breaks = 1:7) +
+  labs(title = "他の訪問客は妨げ(全サンプル)") +
+  xlab("妨げ度合い") 
+
+p4 <- df |> 
+  filter(!is.na(v15_critical_shop_attitude)) |> 
+  ggplot(aes(x = v15_critical_shop_attitude)) +
+  geom_bar() + 
+  scale_x_continuous(breaks = 1:7) +
+  labs(title = "売店は妨げ(全サンプル)") +
+  xlab("妨げ度合い") 
+
+p5 <- df |> 
+  filter(!is.na(v15_critical_photospot_attitude)) |> 
+  ggplot(aes(x = v15_critical_photospot_attitude)) +
+  geom_bar() + 
+  scale_x_continuous(breaks = 1:7) +
+  labs(title = "写真スポット看板は妨げ(全サンプル)") +
+  xlab("妨げ度合い") 
+
+
+p1 + p2 + p3 + p4 + p5
+```
+
+
+```{r v15-bar-wtp_right}
+p1 <- df |> 
+  filter(!is.na(v15_critical_access_attitude) & full_wtp_right == 1) |> 
+  ggplot(aes(x = v15_critical_access_attitude)) +
+  geom_bar() + 
+  scale_x_continuous(breaks = 1:7) +
+  labs(title = "広い道路は妨げ\n(CVM適切回答者のみ)") +
+  xlab("妨げ度合い") 
+
+p2 <- df |> 
+  filter(!is.na(v15_critical_parking_attitude) & full_wtp_right == 1) |> 
+  ggplot(aes(x = v15_critical_parking_attitude)) +
+  geom_bar() + 
+  scale_x_continuous(breaks = 1:7) +
+  labs(title = "広い駐車場は妨げ\n(CVM適切回答者のみ)") +
+  xlab("妨げ度合い") 
+
+p3 <- df |> 
+  filter(!is.na(v15_critical_crowd_attitude) & full_wtp_right == 1) |> 
+  ggplot(aes(x = v15_critical_crowd_attitude)) +
+  geom_bar() + 
+  scale_x_continuous(breaks = 1:7) +
+  labs(title = "他の訪問客は妨げ\n(CVM適切回答者のみ)") +
+  xlab("妨げ度合い") 
+
+p4 <- df |> 
+  filter(!is.na(v15_critical_shop_attitude) & full_wtp_right == 1) |> 
+  ggplot(aes(x = v15_critical_shop_attitude)) +
+  geom_bar() + 
+  scale_x_continuous(breaks = 1:7) +
+  labs(title = "売店は妨げ\n(CVM適切回答者のみ)") +
+  xlab("妨げ度合い") 
+
+p5 <- df |> 
+  filter(!is.na(v15_critical_photospot_attitude) & full_wtp_right == 1) |> 
+  ggplot(aes(x = v15_critical_photospot_attitude)) +
+  geom_bar() + 
+  scale_x_continuous(breaks = 1:7) +
+  labs(title = "写真スポット看板は妨げ\n(CVM適切回答者のみ)") +
+  xlab("妨げ度合い") 
+
+
+p1 + p2 + p3 + p4 + p5
+```
+
+全体的に4（どちらでもない）を中心に分布しているが、「他の観光客は妨げ」については分布が右に偏っており、妨げと考える訪問客が多い傾向である。
+
+
 ## 訪問満足度の規定要因
 
 ```{r v9-regression}
@@ -750,6 +859,328 @@ exp(coef(result))
 
 オッズ比。景色ダミー以外はだいたい1のあたりなので、総合満足度に影響しない傾向。やはり景色満足度で総合満足度はだいたい決まってしまうようだ。
 
+
 ## 手つかず志向指標の作成
 
+```{r v15-corrplot}
+df2 <-  df |> 
+  filter(date == "7月20-21日" & full_wtp_right == 1)
+  
+access <- df2$v15_critical_access_attitude
+parking <- df2$v15_critical_parking_attitude
+crowd <- df2$v15_critical_crowd_attitude
+shop <- df2$v15_critical_shop_attitude
+photo <- df2$v15_critical_photospot_attitude
+
+df3 <- data.frame(
+  access, parking, crowd, shop, photo
+)
+
+m <- df3 |> 
+  cor(use = "pairwise.complete.obs", method="kendall")
+
+corrplot(m)
+```
+
+手つかず志向関連の変数について相関行列を求めた（kendallの順位相関係数）。全体的に正の相関で、とくにアクセスと駐車場については相関が大きい（0.670）。なお、ここではCVMに適切に回答したサンプルのみを用いている。
+
+```{r corr_mat}
+m
+```
+
+
+```{r v15-chronbach}
+library(psych)
+
+psych::alpha(df3)
+```
+クロンバックのαを求めた。raw_alpha(変数を標準化しない場合)でもstd.alpha(変数を標準化した場合)でもαの値は0.8を超えており、内的一貫性が高く、十分な信頼性が確認された。そこで、これらの変数の平均値をもとに、手つかず志向指標を作成する。
+
+Vistad &  Vorkinn (2012)は、1-3.5をlow purist、3.51-4.49をmedium purist、4.5-7をStrong puristとして、各自然観光地において該当者の割合がどのように異なるかを示している。つまり、「どちらでもない」に該当する4を中心に前後で約0.5ずつの間隔をとってmediumとし、mediumより大きければStrong、小さければlowとしている。
+
+まずは平均値の分布を見てみよう。
+
+```{r purit_mean-bar}
+df |> 
+  filter(date == "7月20-21日" & full_wtp_right == 1) |> 
+  mutate(
+    purist_mean = purist / 5
+  ) |> 
+  ggplot(aes(x = purist_mean)) +
+  geom_bar()
+```
+手つかず志向の平均値は4を中心に、左右対称に近い形で分布している。
+これを、low, medium, strongの3つにわけてみよう。
+
+
+```{r purit_low_medi_stor-bar-wtp_right}
+df |> 
+  filter(date == "7月20-21日" & full_wtp_right == 1) |> 
+  mutate(
+    purist_low_medi_stor = case_when(
+      purist / 5 <= 3.5 ~ "low",
+      3.5 < purist / 5 & purist / 5 <  4.5 ~ "medium",
+      4.5 <= purist / 5 ~ "strong",
+      TRUE ~ NA_character_
+    )
+  ) |> 
+  ggplot(aes(x = purist_low_medi_stor)) +
+  geom_bar() +
+  labs(title = "手つかず志向low, medium, strong該当者の割合(CVM適切回答者のみ)")
+```
+
+mediumがもっとも多く、low, strongより10ほど該当者が多い。
+
+
+
+## 区間回帰
+
+### モデル1(定数項だけ)
+
+```{r regress1}
+# 定数項だけのモデル。full_wtp_right==1のみ使用
+model <- survreg(
+  Surv(L, U, type = "interval2") ~ 1,
+  data = df |> filter(full_wtp_right == 1),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+
+定数項だけのモデルで、定数項は平均WTPを意味する。平均WTPは771.5円である。
+
+
+### モデル2(市民選好フレーミングの検討)
+
+```{r regress2}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  v13_citizen_consumer,
+  data = df |> filter(full_wtp_right == 1),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+市民選好フレーミングは有意でなく、係数も非常に小さい　→　市民選好フレーミングは回答傾向に影響しないと考え、以下の分析からは外す。
+
+### モデル2.5（居住地による影響）
+
+```{r regress2.5}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  v3_hokkaido,
+  data = df |> filter(full_wtp_right == 1),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+道内居住かどうかの影響。道外である方がWTPは大きくなる傾向だが、10%水準有意のボーダーラインである。モデル自体の有意判定も同様。
+
+### モデル3（旅行形態？による影響）
+
+```{r regress3}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  v3_hokkaido + pair +  I(v6_kaminoko_visits == "はじめて"),
+  data = df |> filter(full_wtp_right == 1),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+- 神の子訪問回数は「はじめて」が6割程度を占めるので、「はじめて」かどうかのダミー変数としている。何人連れかについても、「2人連れ」が6割程度なので、同様に「2人連れ」かどうかのダミー変数としている。
+- 神の子池にはじめて訪れた人はWTPが高い（有意）。2回目以上になると感動が薄れたり、もう再び訪れることはないという意識からWTPが低めになるのかもしれない。
+- 2人連れだとWTPが高い（有意）。いくつか解釈が考えられる。ひとつは、2人連れは夫婦やカップルが多く、お互いの財布を共有しているという意識が強いため、個人としてではなく2人で支払っても良い金額を考えたのではないか、というもの。ただし、2人連れが夫婦なのかカップルなのか友だち同士なのかは今回の調査票からは判別できない。もう一つは、2人連れだと互いの回答を意識するため、一種の相互監視状態になり、ケチだと思われたくないからyesと回答したのではないか、というもの。3人以上だと匿名性が高くなり、相互監視が弱まったのではないか。いずれの解釈も成り立つが、今回の調査票ではこれ以上の裏付けはできない。
+- 居住地ダミーは有意判定が完全に消えた。道外居住かどうかではなく、神の子池にはじめて訪れたかどうかがWTPに影響するのだろう。→今後の分析で居住地は外そう
+
+```{r}
+cor(df$v3_hokkaido == "道外", df$v6_kaminoko_visits == "はじめて", use = "complete.obs")
+```
+参考：このように、道外の人の方がはじめて神の子池を訪れる人が多い。
+
+
+### モデル4（世代の影響）
+
+
+```{r regress4}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  I(v2_gen == "20代") +  pair +  I(v6_kaminoko_visits == "はじめて") ,
+  data = df |> filter(full_wtp_right == 1),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+世代では20代が多めである（20％程度）であるため、ダミー変数化してWTPへの影響を見てみた。
+20代はWTPが低くなる傾向。これは収入が低いためであろう（今回は収入は聞いていない）
+
+
+```{r regress4.1}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  I(v2_gen == "10代" | v2_gen == "20代") +  pair +  I(v6_kaminoko_visits == "はじめて") ,
+  data = df |> filter(full_wtp_right == 1),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+
+10代と20代を合わせると傾向がさらにはっきりする。
+
+```{r regress4.2}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  I(v2_gen == "10代" | v2_gen == "20代" | v2_gen == "30代" ) +  pair +  I(v6_kaminoko_visits == "はじめて") ,
+  data = df |> filter(full_wtp_right == 1),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+
+30代までいれると有意でなくなる。
+
+```{r regress4.3}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  I(v2_gen == "30代" | v2_gen == "40代" | v2_gen == "50代" ) +  pair +  I(v6_kaminoko_visits == "はじめて") ,
+  data = df |> filter(full_wtp_right == 1),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+逆に、30代～50代の働き盛りだと係数が正になり、10%有意。収入があるから支払に余裕があるということだろうか。
+
+
+### モデル5（満足度の影響）
+
+```{r regress5}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  I(v2_gen == "30代" | v2_gen == "40代" | v2_gen == "50代" ) +  pair +  I(v6_kaminoko_visits == "はじめて") + v9_general_satisfaction ,
+  data = df |> filter(full_wtp_right == 1),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+総合満足度は完全に有意。ただし係数はそこまで大きくない。
+
+
+```{r regress5.1}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  I(v2_gen == "30代" | v2_gen == "40代" | v2_gen == "50代" ) +  pair +  I(v6_kaminoko_visits == "はじめて") + v9_scenery_satisfaction + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction,
+  data = df |> filter(full_wtp_right == 1),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+下位区分の満足度を投入。景色満足度だけが有意になっている。
+
+これだけ変数を入れると多重共線性が心配なのでVIFを出しておく。→以下の通り。全く問題なさそう。
+
+```{r vif}
+vif(model)
+```
+
+
+
+### モデル6(手つかず志向の影響)
+
+```{r regress6}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  I(v2_gen == "30代" | v2_gen == "40代" | v2_gen == "50代" ) +  pair +  I(v6_kaminoko_visits == "はじめて") + v9_general_satisfaction + purist_strong,
+  data = df |> filter(date == "7月20-21日" & full_wtp_right == 1),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+purist_strongを入れてみた。有意でないし、モデル自体も有意でない。
+
+
+```{r regress6.1}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  I(v2_gen == "30代" | v2_gen == "40代" | v2_gen == "50代" ) +  pair +  I(v6_kaminoko_visits == "はじめて") + v9_general_satisfaction + purist_low,
+  data = df |> filter(date == "7月20-21日" & full_wtp_right == 1),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+lowでも同じ傾向
+
+```{r regress6.2}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  I(v2_gen == "30代" | v2_gen == "40代" | v2_gen == "50代" ) +  pair +  I(v6_kaminoko_visits == "はじめて") +  v9_facility_satisfaction + v9_tourist_spot_satisfaction +   purist_strong + purist_strong:v9_facility_satisfaction + purist_strong:v9_tourist_spot_satisfaction,
+  data = df |> filter(full_wtp_right == 1 & date == "7月20-21日"),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+手つかず志向のちがいによって満足度の意味合いが変わってくる可能性がある。たとえば、手つかず志向の高い人にとっては整備がすでに十分だと満足していれば、それ以上の整備を求めないため、整備のために入域料を支払うことに抵抗するかもしれない。そこで、満足度と手つかず志向の交差項を入れて分析した。
+手つかず志向の主効果は有意でないが、施設満足度との交差項が有意になっており、周辺スポット満足度との交差項も有意に近い。ただしモデルは有意になっていない。
+
+```{r regress6.3}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  I(v2_gen == "30代" | v2_gen == "40代" | v2_gen == "50代" ) +  pair +  I(v6_kaminoko_visits == "はじめて") +  v9_facility_satisfaction + v9_tourist_spot_satisfaction +   purist_low + purist_low:v9_facility_satisfaction + purist_low:v9_tourist_spot_satisfaction,
+  data = df |> filter(full_wtp_right == 1 & date == "7月20-21日"),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+puristダミーはpurist_lowよりもpurist_strongの方が傾向がよく現れている。
+
+ただし、サンプル数に対し説明変数が多すぎる。有意であるpairと、満足度と手つかず志向変数だけに限定して見てみよう。
+
+
+```{r regress6.4}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~    pair  +  v9_facility_satisfaction + v9_tourist_spot_satisfaction +   purist_strong + purist_strong:v9_facility_satisfaction + purist_strong:v9_tourist_spot_satisfaction,
+  data = df |> filter(full_wtp_right == 1 & date == "7月20-21日"),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+
+やはり手つかず志向の主効果は有意でない。交差項はふたつとも有意になっているモデル自体も有意だ。
+
+
+```{r regress6.5}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~    pair  +  v9_scenery_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction +   purist_strong +  purist_strong:v9_scenery_satisfaction +  purist_strong:v9_facility_satisfaction + purist_strong:v9_tourist_spot_satisfaction,
+  data = df |> filter(full_wtp_right == 1 & date == "7月20-21日"),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+
+```{r regress6.6}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~    pair  +  v9_scenery_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction +   purist_strong +  purist_strong:v9_facility_satisfaction + purist_strong:v9_tourist_spot_satisfaction,
+  data = df |> filter(full_wtp_right == 1 & date == "7月20-21日"),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+
+-景色満足度は主効果は有意になるが、手つかず志向との交差項は有意にならない。
+- 周辺スポット満足度は有意で、係数は負。これは、周辺スポットに満足しているのであれば、そうした周辺- スポットでもお金を使いたいので、神の子池にはあまりお金を使いたくないということではないか。
+一方で、周辺スポットと手つかず志向の交差項の係数は有意で正だ。手つかず志向の強い人の場合、「周辺スポット」の意味が違うのかもしれない。つまり、周辺の道の駅などの施設ではなく、他の自然観光地を「周辺スポット」と解釈しているのではないか。その場合、「神の子池を含む周囲の自然全体を守りたい」という意識から、高めのWTPを示すのではないか。
+- 施設満足度と手つかず志向の交差項の係数は有意で負である。手つかず志向の強い人の場合、施設にある程度満足であると、施設をそれ以上整備して欲しくないと考えるのではないか。だから、整備に利用される入域料を支払いたくなくなるのではないか。
+
+
+(ただし、総合満足度と景色満足度は天井効果を起こしているので、ダミー変数を使った分析も必要)
+
+
+# 参考文献
+
+Vistad, Odd Inge, and Marit Vorkinn. 2012. “The Wilderness Purism Construct — Experiences from Norway with a Simplified Version of the Purism Scale.” Forest Policy and Economics, Forest and Nature Based Recreation and Tourism, vol. 19 (June): 39–47. https://doi.org/10.1016/j.forpol.2011.12.009.
+
+
+Sæþórsdóttir, Anna Dóra. 2010. “Planning Nature Tourism in Iceland Based on Tourist Attitudes.” Tourism Geographies 12 (1): 25–52. https://doi.org/10.1080/14616680903493639.
 

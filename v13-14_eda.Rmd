@@ -385,6 +385,52 @@ df |>
 puristの方が周辺スポット満足度が高い　→　おそらく、puristとnon-puristとで、「周辺観光スポット」の意味がちがうのではないか。puristの方は周囲に自然が多いので、充実していると感じ、そうした自然の一部である神の子池により多くのお金を出したくなる。しかしnon-puristはむしろ施設や飲食店を観光スポットと考えているから、観光スポットがないと感じる。
 また，puristの方が施設満足度の上幅がやや高い。つまり、現在の施設にそこそこ満足しているということだろう。だから、施設整備のためにお金を出すのをためらう、という発想をするのではないか。
 
+
+既存研究にしたがってpuristをlow, medium, strongにわけてダミー変数を作って区間回帰したら？
+
+```{r purist_strong}
+df2 <- df |>
+  mutate(
+    purist_low =  case_when(
+      is.na(purist) ~ NA_real_,
+      purist / 5 <= 3.5  ~ 1,
+      TRUE ~ 0
+    ),
+    purist_medium = case_when(
+      is.na(purist) ~ NA_real_,
+      3.5 < purist / 5 & purist / 5 < 4.5 ~ 1,
+      TRUE ~ 0
+    ),
+    purist_strong = case_when(
+      is.na(purist) ~ NA_real_,
+      4.5 <= purist / 5 ~ 1,
+      TRUE ~ 0
+    )
+  ) 
+
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  v3_hokkaido + pair + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction + v9_general_satisfaction +  + purist_strong + purist_strong:v9_facility_satisfaction + purist_strong:v9_tourist_spot_satisfaction,
+  data = df2 |> filter(full_wtp_right == 1 & date == "7月20-21日"),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+strongだとやはり満足度と組み合わせると明確な交互効果がある。
+
+
+```{r purist_low}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  v3_hokkaido + pair + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction + v9_general_satisfaction +  + purist_low + purist_low:v9_facility_satisfaction + purist_low:v9_tourist_spot_satisfaction,
+  data = df2 |> filter(full_wtp_right == 1 & date == "7月20-21日"),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+lowとそれ以外を比較。strongの場合と交互効果の符号が逆転している（strongのときと整合した結果）。また、有意ではないけど、lowの主効果が大きくマイナスになっている。
+（mediumとstrongの両方を同時に入れた分析も可能だけど、サンプル数に対して変数の数が多くなるのでやめておこう）
+
 ## 7月ダミーを使った分析
 
 ```{r}

@@ -6,6 +6,7 @@ library(corrplot) # 相関行列を求める
 library(janitor) # 変数名をきれいにするためのパッケージ
 library(survival) # 区間回帰用
 library(psych) # クロンバックのα用
+library(car) # vifが入っている
 
 
 # データインポートと結合----
@@ -678,6 +679,27 @@ df <- df |>
     purist_dummy2 =
       ifelse(v15_critical_access_attitude + v15_critical_parking_attitude > 10, 1, 0)
   )
+
+
+### purist_strong, medium, low----
+df <- df |>
+  mutate(
+    purist_low =  case_when(
+      is.na(purist) ~ NA_real_,
+      purist / 5 <= 3.5  ~ 1,
+      TRUE ~ 0
+    ),
+    purist_medium = case_when(
+      is.na(purist) ~ NA_real_,
+      3.5 < purist / 5 & purist / 5 < 4.5 ~ 1,
+      TRUE ~ 0
+    ),
+    purist_strong = case_when(
+      is.na(purist) ~ NA_real_,
+      4.5 <= purist / 5 ~ 1,
+      TRUE ~ 0
+    )
+  ) 
 
 ## 欠損パターンをコーディング----
 
