@@ -1055,26 +1055,26 @@ model |> summary()
 
 ```{r regress5}
 model <- survreg(
-  Surv(L, U, type = "interval2") ~  I(v2_gen == "30代" | v2_gen == "40代" | v2_gen == "50代" ) +  pair +  I(v6_kaminoko_visits == "はじめて") + v9_general_satisfaction ,
+  Surv(L, U, type = "interval2") ~  I(v2_gen == "30代" | v2_gen == "40代" | v2_gen == "50代" ) +  pair +  I(v6_kaminoko_visits == "はじめて") + general_dummy ,
   data = df |> filter(full_wtp_right == 1),
   dist = "gaussian"
 )
 
 model |> summary()
 ```
-総合満足度は完全に有意。ただし係数はそこまで大きくない。
+総合満足度は完全に有意。
 
 
 ```{r regress5.1}
 model <- survreg(
-  Surv(L, U, type = "interval2") ~  I(v2_gen == "30代" | v2_gen == "40代" | v2_gen == "50代" ) +  pair +  I(v6_kaminoko_visits == "はじめて") + v9_scenery_satisfaction + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction,
+  Surv(L, U, type = "interval2") ~  I(v2_gen == "30代" | v2_gen == "40代" | v2_gen == "50代" ) +  pair +  I(v6_kaminoko_visits == "はじめて") + scenery_dummy + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction,
   data = df |> filter(full_wtp_right == 1),
   dist = "gaussian"
 )
 
 model |> summary()
 ```
-下位区分の満足度を投入。景色満足度だけが有意になっている。
+下位区分の満足度を投入。景色満足度が明確に有意になっている。施設満足度も10％水準有意。
 
 これだけ変数を入れると多重共線性が心配なのでVIFを出しておく。→以下の通り。全く問題なさそう。
 
@@ -1088,7 +1088,7 @@ vif(model)
 
 ```{r regress6}
 model <- survreg(
-  Surv(L, U, type = "interval2") ~  I(v2_gen == "30代" | v2_gen == "40代" | v2_gen == "50代" ) +  pair +  I(v6_kaminoko_visits == "はじめて") + v9_general_satisfaction + purist_strong,
+  Surv(L, U, type = "interval2") ~  I(v2_gen == "30代" | v2_gen == "40代" | v2_gen == "50代" ) +  pair +  I(v6_kaminoko_visits == "はじめて") + general_dummy + purist_strong,
   data = df |> filter(date == "7月20-21日" & full_wtp_right == 1),
   dist = "gaussian"
 )
@@ -1100,7 +1100,7 @@ purist_strongを入れてみた。有意でないし、モデル自体も有意�
 
 ```{r regress6.1}
 model <- survreg(
-  Surv(L, U, type = "interval2") ~  I(v2_gen == "30代" | v2_gen == "40代" | v2_gen == "50代" ) +  pair +  I(v6_kaminoko_visits == "はじめて") + v9_general_satisfaction + purist_low,
+  Surv(L, U, type = "interval2") ~  I(v2_gen == "30代" | v2_gen == "40代" | v2_gen == "50代" ) +  pair +  I(v6_kaminoko_visits == "はじめて") + general_dummy + purist_low,
   data = df |> filter(date == "7月20-21日" & full_wtp_right == 1),
   dist = "gaussian"
 )
@@ -1146,11 +1146,12 @@ model |> summary()
 ```
 
 やはり手つかず志向の主効果は有意でない。交差項はふたつとも有意になっているモデル自体も有意だ。
+次に景色満足度も入れてみよう。
 
 
 ```{r regress6.5}
 model <- survreg(
-  Surv(L, U, type = "interval2") ~    pair  +  v9_scenery_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction +   purist_strong +  purist_strong:v9_scenery_satisfaction +  purist_strong:v9_facility_satisfaction + purist_strong:v9_tourist_spot_satisfaction,
+  Surv(L, U, type = "interval2") ~    pair  +  scenery_dummy + v9_facility_satisfaction + v9_tourist_spot_satisfaction +   purist_strong +  purist_strong:v9_scenery_satisfaction +  purist_strong:v9_facility_satisfaction + purist_strong:v9_tourist_spot_satisfaction,
   data = df |> filter(full_wtp_right == 1 & date == "7月20-21日"),
   dist = "gaussian"
 )
@@ -1158,23 +1159,13 @@ model <- survreg(
 model |> summary()
 ```
 
-```{r regress6.6}
-model <- survreg(
-  Surv(L, U, type = "interval2") ~    pair  +  v9_scenery_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction +   purist_strong +  purist_strong:v9_facility_satisfaction + purist_strong:v9_tourist_spot_satisfaction,
-  data = df |> filter(full_wtp_right == 1 & date == "7月20-21日"),
-  dist = "gaussian"
-)
-
-model |> summary()
-```
-
--景色満足度は主効果は有意になるが、手つかず志向との交差項は有意にならない。
-- 周辺スポット満足度は有意で、係数は負。これは、周辺スポットに満足しているのであれば、そうした周辺- スポットでもお金を使いたいので、神の子池にはあまりお金を使いたくないということではないか。
-一方で、周辺スポットと手つかず志向の交差項の係数は有意で正だ。手つかず志向の強い人の場合、「周辺スポット」の意味が違うのかもしれない。つまり、周辺の道の駅などの施設ではなく、他の自然観光地を「周辺スポット」と解釈しているのではないか。その場合、「神の子池を含む周囲の自然全体を守りたい」という意識から、高めのWTPを示すのではないか。
+- 満足度の主効果はすべて有意でなくなり、手つかず志向との交差項はすべて有意。また、モデル全体も有意。
+- 景色満足度と手つかず志向の交差項の係数は有意で正。手つかず志向の高い人の方が景色を重視してWTPを決めるということか。既存研究ではpuristは整備されていない原生的な自然を愛する人々と位置づけられているので、これは納得のいく傾向だ。
+- 周辺スポットと手つかず志向の交差項の係数は有意で正だ。手つかず志向の強い人の場合、「周辺スポット」の意味が違うのかもしれない。つまり、周辺の道の駅などの施設ではなく、他の自然観光地を「周辺スポット」と解釈しているのではないか。その場合、「神の子池を含む周囲の自然全体を守りたい」という意識から、高めのWTPを示すのではないか。
 - 施設満足度と手つかず志向の交差項の係数は有意で負である。手つかず志向の強い人の場合、施設にある程度満足であると、施設をそれ以上整備して欲しくないと考えるのではないか。だから、整備に利用される入域料を支払いたくなくなるのではないか。
+- なお、アクセス満足度は施設満足度と相関が高い(0.670)ので、変数節約のためここには入れていない。
 
 
-(ただし、総合満足度と景色満足度は天井効果を起こしているので、ダミー変数を使った分析も必要)
 
 
 # 参考文献

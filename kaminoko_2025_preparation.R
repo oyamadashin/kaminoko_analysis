@@ -403,6 +403,21 @@ df <- df |>
     v10_kaminoko_achievement_satis = as.numeric(v10_kaminoko_achievement_satis)
   ) 
 
+# 総合満足度と景色満足度は天井効果を起こしているので、10 = 1, それ以外を0でダミー変数化
+df <- df |> 
+  mutate(
+    general_dummy = case_when(
+      v9_general_satisfaction == 10 ~ 1,
+      v9_general_satisfaction %in% 1:9 ~ 0,
+      is.na(v9_general_satisfaction) ~ NA_integer_
+    ),
+    scenery_dummy  = case_when(
+      v9_scenery_satisfaction == 10 ~ 1,
+      v9_scenery_satisfaction %in% 1:9 ~ 0,
+      is.na(v9_scenery_satisfaction) ~ NA_integer_)
+  )
+
+
 
 
 ## v12----
