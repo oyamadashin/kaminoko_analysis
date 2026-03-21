@@ -480,7 +480,85 @@ df |>
   labs(title = "神の子訪問満足度・調査日別（CVM適切回答者のみ）")
 ```
 
--   調査日別の満足度の傾向を示した。総合満足度の天井効果が目立つのは６月14-15日。7月20-21日は虫が大量発生したが、満足度が大きく低下しているようには見えない。
+-   調査日別の満足度の傾向を示した。総合満足度の天井効果が目立つのは６月14-15日。7月20-21日は虫が大量発生したが、満足度が大きく低下しているようには見えない。→anovaでも確認してみよう
+
+
+```{r anova-v9_general-by_date}
+
+df2 <- df |> 
+  filter(!is.na(date))|>
+  mutate(date_july = ifelse(date == "7月20-21日", 1, 0))
+
+model <- aov(v9_general_satisfaction ~ date_july, data = df2)
+
+summary(model)
+```
+
+```{r mean_general-by_date}
+df2 |> 
+  group_by(date_july) |> 
+  summarise(
+    mean_general = mean(v9_general_satisfaction, na.rm = TRUE),
+    sd_general = sd(v9_general_satisfaction, na.rm = TRUE),
+    n = n())
+```
+7月は総合満足度平均が0.45くらい低い
+
+```{r anova-v9_scenery-by_date}
+
+model <- aov(v9_scenery_satisfaction ~ date_july, data = df2)
+
+summary(model)
+```
+
+```{r mean_scenery-by_date}
+df2 |> 
+  group_by(date_july) |> 
+  summarise(
+    mean_general = mean(v9_scenery_satisfaction, na.rm = TRUE),
+    sd_general = sd(v9_scenery_satisfaction, na.rm = TRUE),
+    n = n())
+```
+景色満足度も7月は低い（0.5くらい）。
+
+```{r anova-v9_access-by_date}
+
+model <- aov(v9_access_satisfaction ~ date_july, data = df2)
+
+summary(model)
+```
+アクセス満足度は7月と6月で変わらない。
+
+```{r anova-v9_facility-by_date}
+
+model <- aov(v9_facility_satisfaction ~ date_july, data = df2)
+
+summary(model)
+```
+
+```{r mean_facility-by_date}
+df2 |> 
+  group_by(date_july) |> 
+  summarise(
+    mean_general = mean(v9_facility_satisfaction, na.rm = TRUE),
+    sd_general = sd(v9_facility_satisfaction, na.rm = TRUE),
+    n = n())
+```
+施設満足度は7月の方が低い（0.5くらい）
+
+
+```{r anova-v9_spot-by_date}
+
+model <- aov(v9_tourist_spot_satisfaction ~ date_july, data = df2)
+
+summary(model)
+```
+
+周辺観光地満足度は変わらない
+
+→　7月データは総合満足度、景色満足度、施設満足度がそれぞれ0.45～0.5低い。
+
+以下、居住地での満足度比較。
 
 ```{r v9-boxplot-v3-wtp_right}
 df |> 
@@ -498,6 +576,8 @@ df |>
 ```
 
 -   総合満足度については道内居住者の方が天井効果を起こしている。道外居住者は満足度8のあたりに集中する傾向。
+
+
 
 ### 神の子池のどの側面に満足しているか（７月のみ）
 
