@@ -1044,6 +1044,18 @@ model |> summary()
 ```
 市民選好フレーミングは有意でなく、係数も非常に小さい　→　市民選好フレーミングは回答傾向に影響しないと考え、以下の分析からは外す。
 
+```{r regress2.1}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~  v13_citizen_consumer +  + purist_strong + purist_strong:v13_citizen_consumer,
+  data = df |> filter(full_wtp_right == 1, date == "7月20-21日"),
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+
+念のため、puristと市民選好の交互作用も見てみた。なにもなし。
+
 ### モデル2.5（居住地による影響）
 
 ```{r regress2.5}
