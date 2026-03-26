@@ -43,6 +43,18 @@ df |>
 
 6月調査の方は男女比率がほぼ同じ。
 
+
+カイ二乗検定で確認　→　差なし
+```{r}
+df$valid <- ifelse(df$full_wtp_right == 1, "valid", "invalid")
+
+
+tab <- table(df$v1_sex, df$valid)
+result <- chisq.test(tab)
+result$p.value
+```
+
+
 ## v2(世代)
 
 ```{r}
@@ -73,6 +85,32 @@ df |>
   ggplot(aes(x = prop, y = v2_gen)) +
   geom_col() +
   facet_wrap(~date)
+```
+
+カイ二乗検定で確認　→　差なし
+```{r}
+
+df |> 
+  filter(!is.na(v2_gen) & full_wtp_right == 1) |> 
+  count(v2_gen) |> 
+  mutate(
+    percent = (n / sum(n)) * 100
+  )
+
+df |> 
+  filter(!is.na(v2_gen) & full_wtp_right == 0) |> 
+  count(v2_gen) |> 
+  mutate(
+    percent = (n / sum(n)) * 100
+  )
+
+df$valid <- ifelse(df$full_wtp_right == 1, "valid", "invalid")
+
+
+tab <- table(df$v2_gen, df$valid)
+result <- chisq.test(tab)
+result$p.value
+
 ```
 
 ## v3(居住地)

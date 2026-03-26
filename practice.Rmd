@@ -13,9 +13,14 @@ source("kaminoko_2025_preparation.R")
 
 
 ```{r}
-aaas
 
-analysis_df <- df |> filter(full_wtp_right == 1)
+
+df$valid <- ifelse(df$full_wtp_right == 1, "valid", "invalid")
+
+
+tab <- table(df$v1_sex, df$valid)
+result <- chisq.test(tab)
+result$p.value
 
 
 df |> 
