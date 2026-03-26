@@ -13,7 +13,7 @@ source("kaminoko_2025_preparation.R")
 
 
 ```{r}
-
+aaas
 
 analysis_df <- df |> filter(full_wtp_right == 1)
 
