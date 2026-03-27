@@ -13,6 +13,20 @@ source("kaminoko_2025_preparation.R")
 
 
 ```{r}
+df$valid <- ifelse(df$full_wtp_right == 1, "valid", "invalid")
+
+
+vali_gen <- df |> filter(!is.na(v9_general_satisfaction) & valid == "valid") |> 
+  select(v9_general_satisfaction)
+
+invali_gen <- df |> filter(!is.na(v9_general_satisfaction) & valid == "invalid") |> 
+  select(v9_general_satisfaction)  
+
+t.test(vali_gen, invali_gen)
+```
+
+
+```{r}
 
 
 df$valid <- ifelse(df$full_wtp_right == 1, "valid", "invalid")
