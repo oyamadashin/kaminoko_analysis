@@ -17,8 +17,16 @@ source("kaminoko_2025_preparation.R")
 
 ## 欠損全体状況
 
-
 ```{r na_prop}
+df |> 
+  count(wtp_interval) |> 
+  mutate(
+    prop = n / sum(n)
+  ) |> 
+  filter(is.na(wtp_interval))
+```
+
+```{r na_prop-by_day}
 df |> 
   count(date, wtp_interval) |> 
   group_by(date) |> 
@@ -32,6 +40,22 @@ df |>
 
 ## 欠損パターン
 
+```{r missing_pattern}
+df |> 
+  filter(is.na(wtp_interval)) |> 
+  pivot_longer(
+    cols = c("bid1_right_bid2_missing","bid1_right_bid2_both_answer", "bid1_missing_only", "bid1_missing_bid2_both_answer", "full_wtp_missing"),
+    names_to = "na_pattern",
+    values_to = "yes"
+  ) |> 
+  filter(yes == 1) |> 
+  count(na_pattern) |>
+  mutate(na_pattern = na_pattern, prop = n / sum(n)) |> 
+  ggplot(aes(y = na_pattern, x = prop)) + 
+  geom_col() 
+```
+
+
 ```{r date-missing_pattern}
 df |> 
   filter(is.na(wtp_interval)) |> 
@@ -41,15 +65,18 @@ df |>
     values_to = "yes"
   ) |> 
   filter(yes == 1) |> 
+  count(date, na_pattern) |>
   group_by(date) |> 
-  count(na_pattern) |> 
-  summarise(na_pattern = na_pattern, prop = n / sum(n)) |> 
+  mutate(na_pattern = na_pattern, prop = n / sum(n)) |> 
   ggplot(aes(y = na_pattern, x = prop)) + 
   geom_col() +
   facet_wrap(~date)
 ```
 
 欠損の内訳を調査日ごとに見てみた。どの日程でも1問目を未回答というパターンが多い。7月になると、1問目未回答で、2問目は両方回答というパターンが増える。
+
+
+
 
 ### 世代によるちがい
 

@@ -13,6 +13,17 @@ source("kaminoko_2025_preparation.R")
 
 
 ```{r}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~    v13_citizen_consumer,
+  data = df ,
+  dist = "gaussian"
+)
+
+model |> summary()
+```
+
+
+```{r}
 df$valid <- ifelse(df$full_wtp_right == 1, "valid", "invalid")
 
 

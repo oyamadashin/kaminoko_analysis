@@ -269,3 +269,16 @@ result |> summary()
 ```
 
 逆に7月データのみでも同様に見てみた。傾向は似通っている。
+
+
+# 天井効果の検討
+
+```{r}
+df |> 
+  filter(full_wtp_right == 1) |> 
+  summarise(
+    prop_general = round(mean(general_dummy, na.rm = TRUE), 2),
+    prop_scenery = round(mean(scenery_dummy, na.rm = TRUE), 2)
+  )
+```
+

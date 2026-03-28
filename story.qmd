@@ -924,8 +924,8 @@ df2 <- df |>
   )
 
 
-result <- lm(general_dummy ~ scenery_dummy + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction, data = df2 |> filter(full_wtp_right == 1) ,
-             family = binomial(link = "Logit"))
+result <- glm(general_dummy ~ scenery_dummy + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction, data = df2 |> filter(full_wtp_right == 1) ,
+             family = binomial(link = "logit"))
 
 result |> summary()
 
@@ -1080,6 +1080,7 @@ model <- survreg(
 
 model |> summary()
 ```
+
 - 神の子訪問回数は「はじめて」が6割程度を占めるので、「はじめて」かどうかのダミー変数としている。何人連れかについても、「2人連れ」が6割程度なので、同様に「2人連れ」かどうかのダミー変数としている。
 - 神の子池にはじめて訪れた人はWTPが高い（有意）。2回目以上になると感動が薄れたり、もう再び訪れることはないという意識からWTPが低めになるのかもしれない。
 - 2人連れだとWTPが高い（有意）。いくつか解釈が考えられる。ひとつは、2人連れは夫婦やカップルが多く、お互いの財布を共有しているという意識が強いため、個人としてではなく2人で支払っても良い金額を考えたのではないか、というもの。ただし、2人連れが夫婦なのかカップルなのか友だち同士なのかは今回の調査票からは判別できない。もう一つは、2人連れだと互いの回答を意識するため、一種の相互監視状態になり、ケチだと思われたくないからyesと回答したのではないか、というもの。3人以上だと匿名性が高くなり、相互監視が弱まったのではないか。いずれの解釈も成り立つが、今回の調査票ではこれ以上の裏付けはできない。
