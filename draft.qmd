@@ -24,7 +24,7 @@ source("kaminoko_2025_preparation.R")
 
 # はじめに
 
-　自然観光地に入域料等の形で利用者負担制度を導入することには、管理費用の確保、混雑緩和などのメリットがあり、海外では途上国を中心に広く進められている。国内では2015年に施行された地域自然資産法により、地域の自然環境保全と持続可能な利用推進に必要な費用負担の一部を入域料として利用者に求めることができるようになった。しかしこれはあくまで特定の地区や施設の管理を目的としたものである。国立公園全体を対象としているわけではなく、利用者負担が自然公園法において明確に位置づけられているわけではない（愛甲他2025）。自然観光地への利用者負担制度の導入は日本においてまだ初期的段階にあるといえる。
+　自然観光地に入域料等の形で利用者負担制度を導入することには、管理費用の確保、混雑緩和などのメリットがあり、海外では途上国を中心に広く進められている（Eagles, Paul F. J. 2003）。国内では2015年に施行された地域自然資産法により、地域の自然環境保全と持続可能な利用推進に必要な費用負担の一部を入域料として利用者に求めることができるようになった。しかしこれはあくまで特定の地区や施設の管理を目的としたものである。国立公園全体を対象としているわけではなく、利用者負担が自然公園法において明確に位置づけられているわけではない（愛甲他2025）。自然観光地への利用者負担制度の導入は日本においてまだ初期的段階にあるといえる。
 
 　入域料の金額設定には幅広い関係者による合意形成が必要である。そのための参考値を求めるためにCVMにより自然観光地に対する支払意思額（WTP）を明らかにすることは重要である。ただし、WTPの平均値や中央値がそのまま入域料になるわけではなく、実際の金額設定には地域内の負担の公正さへの配慮も必要であるし、収集したお金の使途をステークホルダーに丁寧に説明する等の配慮が社会的受容を促すにあたり重要となる。その意味で、WTPはあくまで議論の出発点であるといえる（Laarman, Jan G., and Hans M. Gregersen. 1996）。一方で、入域料を対象とした国内のCVM研究は支払の実態に着目した研究が多く、現状追認的なものに留まっていると指摘されている（愛甲他2025）。社会的受容をどのように促進するかという観点からの入域料研究はまだ乏しいといえるだろう。
 
@@ -536,3 +536,5 @@ model |> summary()
 -   Ovaskainen, Ville, and Matleena Kniivilä. 2005. “Consumer versus Citizen Preferences in Contingent Valuation: Evidence on the Role of Question Framing.” *Australian Journal of Agricultural and Resource Economics* 49 (4): 379–94. <https://doi.org/10.1111/j.1467-8489.2005.00309.x>.
 
 -   Gundersen, V., T. TangelandとB. P. Kaltenborn. 「Planning for recreation along the opportunity spectrum: The case of Oslo, Norway」. Urban Forestry & Urban Greening 14, 号 2 (2015年): 210–17. https://doi.org/10.1016/j.ufug.2015.01.006.
+
+-   Eagles, Paul F. J. 「International Trends in Park Tourism: The Emerging Role of Finance」. *The George Wright Forum* 20, 号 1 (2003年): 25–57.
