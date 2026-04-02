@@ -111,14 +111,14 @@ df |>
   filter(!is.na(v2_gen) & full_wtp_right == 1) |> 
   count(v2_gen) |> 
   mutate(
-    percent = (n / sum(n)) * 100
+    percent = round((n / sum(n)) * 100, 2)
   )
 
 df |> 
   filter(!is.na(v2_gen) & full_wtp_right == 0) |> 
   count(v2_gen) |> 
   mutate(
-    percent = (n / sum(n)) * 100
+    percent = round((n / sum(n)) * 100, 2)
   )
 
 df$valid <- ifelse(df$full_wtp_right == 1, "valid", "invalid")

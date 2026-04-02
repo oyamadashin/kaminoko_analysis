@@ -13,6 +13,143 @@ source("kaminoko_2025_preparation.R")
 
 
 ```{r}
+df2 <- df |>
+  mutate(
+    v9_facility_c = scale(v9_facility_satisfaction, center = TRUE, scale = FALSE),
+    v9_tourist_c = scale(v9_tourist_spot_satisfaction, center = TRUE, scale = FALSE)
+  )
+
+model <- survreg(
+  Surv(L, U, type = "interval2") ~    I(v6_kaminoko_visits == "はじめて")  + scenery_dummy + v9_facility_c + v9_tourist_c +   purist_strong +  purist_strong:scenery_dummy +   purist_strong:v9_facility_c + purist_strong:v9_tourist_c,
+  data = df2 |> filter(full_wtp_right == 1 & date == "7月20-21日"),
+  dist = "gaussian"
+)
+
+# ダミーの目的変数（何でもいい）
+lm_model <- lm(
+  L ~ pair + scenery_dummy + v9_facility_c + v9_tourist_c +
+    purist_strong +
+    purist_strong:scenery_dummy +
+    purist_strong:v9_facility_c +
+    purist_strong:v9_tourist_c,
+  data = df2 |> filter(full_wtp_right == 1 & date == "7月20-21日")
+)
+
+vif(lm_model)
+
+model |> summary()
+```
+
+
+```{r}
+df |> filter(full_wtp_right == 1) |> 
+  count(v6_kaminoko_visits) |> 
+  mutate(prop = n / sum(n))
+```
+
+```{r}
+df |> filter(date == "7月20-21日" & full_wtp_right == 1) |> 
+  count(v5_companions_cnt) |> 
+  mutate(prop = n / sum(n))
+```
+
+
+```{r}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~    scenery_dummy + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction +   purist_strong +  purist_strong:scenery_dummy + purist_strong:v9_access_satisfaction +  purist_strong:v9_facility_satisfaction + purist_strong:v9_tourist_spot_satisfaction,
+  data = df |> filter(full_wtp_right == 1 & date == "7月20-21日"),
+  dist = "gaussian"
+)
+
+# ダミーの目的変数（何でもいい）
+lm_model <- lm(
+  L ~ scenery_dummy + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction +
+    purist_strong +
+    purist_strong:scenery_dummy +
+    purist_strong:v9_access_satisfaction +
+    purist_strong:v9_facility_satisfaction +
+    purist_strong:v9_tourist_spot_satisfaction,
+  data = df |> filter(full_wtp_right == 1 & date == "7月20-21日")
+)
+
+vif(lm_model)
+```
+
+```{r}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~    scenery_dummy + v9_facility_satisfaction + v9_tourist_spot_satisfaction +   purist_strong +  purist_strong:scenery_dummy + +  purist_strong:v9_facility_satisfaction + purist_strong:v9_tourist_spot_satisfaction,
+  data = df |> filter(full_wtp_right == 1 & date == "7月20-21日"),
+  dist = "gaussian"
+)
+
+# ダミーの目的変数（何でもいい）
+lm_model <- lm(
+  L ~ scenery_dummy +  v9_facility_satisfaction + v9_tourist_spot_satisfaction +
+    purist_strong +
+    purist_strong:scenery_dummy +
+    purist_strong:v9_facility_satisfaction +
+    purist_strong:v9_tourist_spot_satisfaction,
+  data = df |> filter(full_wtp_right == 1 & date == "7月20-21日")
+)
+
+vif(lm_model)
+
+model |> summary()
+```
+```{r}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~     v9_facility_satisfaction + v9_tourist_spot_satisfaction +   purist_strong  +  purist_strong:v9_facility_satisfaction + purist_strong:v9_tourist_spot_satisfaction,
+  data = df |> filter(full_wtp_right == 1 & date == "7月20-21日"),
+  dist = "gaussian"
+)
+
+# ダミーの目的変数（何でもいい）
+lm_model <- lm(
+  L ~   v9_facility_satisfaction + v9_tourist_spot_satisfaction +
+    purist_strong +
+    purist_strong:v9_facility_satisfaction +
+    purist_strong:v9_tourist_spot_satisfaction,
+  data = df |> filter(full_wtp_right == 1 & date == "7月20-21日")
+)
+
+vif(lm_model)
+
+model |> summary()
+```
+
+
+```{r}
+df2 <- df |>
+  mutate(
+    v9_access_c = scale(v9_access_satisfaction, center = TRUE, scale = FALSE),
+    v9_facility_c = scale(v9_facility_satisfaction, center = TRUE, scale = FALSE),
+    v9_tourist_c = scale(v9_tourist_spot_satisfaction, center = TRUE, scale = FALSE)
+  )
+
+model <- survreg(
+  Surv(L, U, type = "interval2") ~    scenery_dummy + v9_access_c + v9_facility_c + v9_tourist_c +   purist_strong +  purist_strong:scenery_dummy + purist_strong:v9_access_c +  purist_strong:v9_facility_c + purist_strong:v9_tourist_c,
+  data = df2 |> filter(full_wtp_right == 1 & date == "7月20-21日"),
+  dist = "gaussian"
+)
+
+# ダミーの目的変数（何でもいい）
+lm_model <- lm(
+  L ~ scenery_dummy + v9_access_c + v9_facility_c + v9_tourist_c +
+    purist_strong +
+    purist_strong:scenery_dummy +
+    purist_strong:v9_access_c +
+    purist_strong:v9_facility_c +
+    purist_strong:v9_tourist_c,
+  data = df2 |> filter(full_wtp_right == 1 & date == "7月20-21日")
+)
+
+vif(lm_model)
+
+lm_model |> summary()
+```
+
+
+```{r}
 model <- survreg(
   Surv(L, U, type = "interval2") ~    v13_citizen_consumer,
   data = df ,
