@@ -568,6 +568,45 @@ p1 + p2 + p3 + p4 + p5
 
 \[13\] 道内・道外居住者で神の子池の満足度傾向にあまり差は見られない。 \[14\] アクセス、設備、周辺観光スポットの満足度は全体的に低い傾向。
 
+
+```{r}
+
+df |>
+  select(
+    v3_hokkaido,
+    v9_scenery_satisfaction,
+    v9_access_satisfaction,
+    v9_facility_satisfaction,
+    v9_tourist_spot_satisfaction,
+    v9_general_satisfaction
+  ) |>
+  pivot_longer(
+    -v3_hokkaido,
+    names_to = "variable",
+    values_to = "value"
+  ) |>
+  group_by(v3_hokkaido, variable) |>
+  summarise(
+    mean = mean(value, na.rm = TRUE) |> round(1),
+    sd = sd(value, na.rm = TRUE) |> round(1),
+    .groups = "drop"
+  )
+```
+
+```{r}
+t.test(v9_scenery_satisfaction ~ v3_hokkaido,
+       data = df)
+t.test(v9_general_satisfaction ~ v3_hokkaido,
+       data = df)
+t.test(v9_facility_satisfaction ~ v3_hokkaido,
+       data = df)
+t.test(v9_access_satisfaction ~ v3_hokkaido,
+       data = df)
+t.test(v9_tourist_spot_satisfaction ~ v3_hokkaido,
+       data = df)
+```
+
+
 ```{r}
 p1 <- df |> 
   filter(!is.na(v3_hokkaido) & !is.na(v9_scenery_satisfaction)) |> 
@@ -1302,6 +1341,8 @@ p1 + p2 + p3 + p4 + p5
 
 - [41]道外の方が他の訪問客は妨げと感じる傾向が強い
 - [42]広い駐車場は妨げとする回答はばらつきが大きい
+
+
 
 ```{r}
 # 駐車場の整備に対する否定的態度
