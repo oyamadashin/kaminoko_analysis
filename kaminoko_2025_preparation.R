@@ -12,9 +12,9 @@ library(car) # vifが入っている
 # データインポートと結合----
 
 ## 結合前データ読み込み
-df1 <- read_csv("kaminoko2025_0608.csv") 
-df2 <- read_csv("kaminoko2025_0614-15.csv")
-df3 <- read_csv("kaminoko2025_0719-20.csv")
+df1 <- read_csv("data/kaminoko2025_0608.csv") 
+df2 <- read_csv("data/kaminoko2025_0614-15.csv")
+df3 <- read_csv("data/kaminoko2025_0719-20.csv")
 
 
 ## 変数名つけなおし（結合する変数のみ）----
