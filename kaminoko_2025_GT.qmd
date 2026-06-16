@@ -1369,3 +1369,40 @@ df |>
   ggplot(aes(x = v15_critical_photospot_attitude)) +
   geom_bar()
 ```
+
+```{r}
+df |>
+  select(
+    v3_hokkaido,
+    v15_critical_access_attitude,
+    v15_critical_parking_attitude,
+    v15_critical_crowd_attitude,
+    v15_critical_shop_attitude,
+    v15_critical_photospot_attitude
+  ) |>
+  pivot_longer(
+    -v3_hokkaido,
+    names_to = "variable",
+    values_to = "value"
+  ) |>
+  group_by(v3_hokkaido, variable) |>
+  summarise(
+    mean = mean(value, na.rm = TRUE) |> round(1),
+    sd = sd(value, na.rm = TRUE) |> round(1),
+    .groups = "drop"
+  )
+```
+
+```{r}
+t.test(v15_critical_access_attitude ~ v3_hokkaido,
+       data = df)
+t.test(v15_critical_parking_attitude ~ v3_hokkaido,
+       data = df)
+t.test(v15_critical_crowd_attitude ~ v3_hokkaido,
+       data = df)
+t.test(v15_critical_shop_attitude ~ v3_hokkaido,
+       data = df)
+t.test(v15_critical_photospot_attitude ~ v3_hokkaido,
+       data = df)
+```
+

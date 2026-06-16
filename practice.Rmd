@@ -12,6 +12,36 @@ source("kaminoko_2025_preparation.R")
 ```
 
 
+```{r regress8}
+df2 <- df |>
+  mutate(
+    v9_access_c = scale(v9_access_satisfaction, center = TRUE, scale = FALSE),
+    v9_facility_c = scale(v9_facility_satisfaction, center = TRUE, scale = FALSE),
+    v9_tourist_c = scale(v9_tourist_spot_satisfaction, center = TRUE, scale = FALSE)
+  )
+
+model <- survreg(
+  Surv(L, U, type = "interval2") ~    pair + v3_hokkaido + scenery_dummy + v9_access_c + v9_facility_c + v9_tourist_c +   purist_strong +  purist_strong:scenery_dummy + purist_strong:v9_access_c +  purist_strong:v9_facility_c + purist_strong:v9_tourist_c,
+  data = df2 |> filter(full_wtp_right == 1 & date == "7月20-21日"),
+  dist = "gaussian"
+)
+
+# ダミーの目的変数（何でもいい）
+lm_model <- lm(
+  L ~ pair + v3_hokkaido + scenery_dummy + v9_access_c + v9_facility_c + v9_tourist_c +
+    purist_strong +
+    purist_strong:scenery_dummy +
+    purist_strong:v9_access_c +
+    purist_strong:v9_facility_c +
+    purist_strong:v9_tourist_c,
+  data = df2 |> filter(full_wtp_right == 1 & date == "7月20-21日")
+)
+
+vif(lm_model)
+
+model |> summary()
+```
+
 ```{r}
 df2 <- df |>
   mutate(
