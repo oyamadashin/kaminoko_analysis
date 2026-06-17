@@ -415,6 +415,25 @@ model |> summary()
 
 　道内居住者は地域への愛着から高めにWTPを回答する可能性が考えられるが、有意にはなっていない。神の子池に初めて訪れた人はWTPが高い傾向があり、有意である。2回目以上になると感動が薄れたり、もう再び訪れることはないという意識からWTPが低めになる可能性が考えられる。また、2人連れだとWTPが高く、有意である。2人連れは夫婦やカップルが多く、お互いの財布を共有しているという意識が強いため、個人としてではなく2人で支払っても良い金額を考えた可能性がある。ただし、2人連れが夫婦なのか友人同士なのかといったことは今回の調査票からは判別できない。
 　
+　
+```{r vif2}
+
+model <- survreg(
+  Surv(L, U, type = "interval2") ~   v3_hokkaido +  I(v5_companions_cnt == "2人" ) + I(v6_kaminoko_visits == "はじめて") ,
+  data = df |> filter(full_wtp_right == 1),
+  dist = "gaussian"
+)
+
+# ダミーの目的変数（何でもいい）
+lm_model <- lm(
+  L ~ v3_hokkaido +  I(v5_companions_cnt == "2人" ) + I(v6_kaminoko_visits == "はじめて"),
+  data = df |> filter(full_wtp_right == 1)
+)
+
+vif(lm_model)
+
+model |> summary()
+```
 
 ### モデル3(市民選好フレーミングの検討)
 
@@ -430,6 +449,26 @@ model |> summary()
 
 　モデル3は市民選好フレーミングの効果を検討するモデルであるが、有意でなく、係数も非常に小さい。先に述べたように、市民選好フレーミングがWTPへの影響力を持つかどうかは理論的には確定できないため、これは実証から得られたひとつの知見として意義があるといえる。 　
 
+```{r vif3}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~    I(v5_companions_cnt == "2人" ) + I(v6_kaminoko_visits == "はじめて") + v13_citizen_consumer,
+  data = df |> filter(full_wtp_right == 1),
+  dist = "gaussian"
+)
+
+# ダミーの目的変数（何でもいい）
+lm_model <- lm(
+  L ~ I(v5_companions_cnt == "2人" ) + I(v6_kaminoko_visits == "はじめて") + v13_citizen_consumer,
+  data = df |> filter(full_wtp_right == 1)
+)
+
+vif(lm_model)
+
+model |> summary()
+```
+
+
+
 ### モデル4（総合満足度の影響）
 
 ```{r regress4}
@@ -443,6 +482,25 @@ model |> summary()
 ```
 
 　満足度がWTPに与える影響をモデル4と5で検討する。まずモデル4に示すように、総合満足度ダミーについては有意であり係数も非常に大きい。
+　
+　
+```{r vif4}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~   I(v5_companions_cnt == "2人" ) + I(v6_kaminoko_visits == "はじめて")  + general_dummy ,
+  data = df |> filter(full_wtp_right == 1),
+  dist = "gaussian"
+)
+
+# ダミーの目的変数（何でもいい）
+lm_model <- lm(
+  L ~ I(v5_companions_cnt == "2人" ) + I(v6_kaminoko_visits == "はじめて")  + general_dummy,
+  data = df |> filter(full_wtp_right == 1)
+)
+
+vif(lm_model)
+
+model |> summary()
+```
 
 ### モデル5（下位区分満足度の影響）
 
@@ -457,6 +515,25 @@ model |> summary()
 ```
 
 　次に、下位区分の満足度の影響をみたのがモデル5である。景色満足度が有意であり、係数も非常に大きい。これは、総合満足度が景色満足度によって大部分規定されることを踏まえるとモデル3と整合的な結果である。一方、他の満足度で有意なものは施設満足度だけであり、係数の絶対値は小さい。係数が負になっている点については、施設が十分だと考えるからこそ、これ以上の整備のために支払う必要がないと考える可能性がある。この点については手つかず志向も用いたモデルにおいても考察する。
+　
+　
+```{r vif5}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~   I(v5_companions_cnt == "2人" ) + I(v6_kaminoko_visits == "はじめて") +  I(v5_companions_cnt == "2人" ) + I(v6_kaminoko_visits == "はじめて") +  scenery_dummy + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction,
+  data = df |> filter(full_wtp_right == 1),
+  dist = "gaussian"
+)
+
+# ダミーの目的変数（何でもいい）
+lm_model <- lm(
+  L ~ I(v5_companions_cnt == "2人" ) + I(v6_kaminoko_visits == "はじめて") +  I(v5_companions_cnt == "2人" ) + I(v6_kaminoko_visits == "はじめて") +  scenery_dummy + v9_access_satisfaction + v9_facility_satisfaction + v9_tourist_spot_satisfaction,
+  data = df |> filter(full_wtp_right == 1)
+)
+
+vif(lm_model)
+
+model |> summary()
+```
 
 ### モデル6-7(手つかず志向の影響)
 
@@ -475,6 +552,24 @@ model |> summary()
 　モデル6では、総合満足度ダミーに加え高度手つかず志向者ダミー（purist_strong）を用いたが、いずれも有意でないし、モデル自体も有意でない。これは、手つかず志向に関する質問は7月調査票にのみ含まれており、サンプル数が少なくなっていることがひとつの要因として考えられる。
 
 　しかし、手つかず志向のちがいによって満足度の意味合いが変わってくる可能性がある。たとえば、手つかず志向の高い人にとっては整備がすでに十分だと満足していれば、それ以上の整備を求めないため、整備のために入域料を支払うことに抵抗するかもしれない。そこで、以下のように下位区分満足度と高度手つかず志向者ダミーの交差項を入れたモデル7を分析した。なお、変数をそのまま交差項として用いるといくつかの項でVIFが10以上となり、多重共線性の疑いが持たれたため、ダミー化していないアクセス満足度、施設満足度、周辺スポット満足度については平均中心化した。VIFはすべて10未満である。
+　
+```{r vif6}
+model <- survreg(
+  Surv(L, U, type = "interval2") ~   I(v5_companions_cnt == "2人" ) + general_dummy + purist_strong,
+  data = df |> filter(date == "7月20-21日" & full_wtp_right == 1),
+  dist = "gaussian"
+)
+
+# ダミーの目的変数（何でもいい）
+lm_model <- lm(
+  L ~ I(v5_companions_cnt == "2人" ) + general_dummy + purist_strong,
+  data = df |> filter(date == "7月20-21日" & full_wtp_right == 1)
+)
+
+vif(lm_model)
+
+model |> summary()
+```
 
 ```{r regress7}
 df2 <- df |>

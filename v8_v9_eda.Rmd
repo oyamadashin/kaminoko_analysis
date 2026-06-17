@@ -226,6 +226,26 @@ m
 ```
 相関行列でも確認。景色満足度と総合満足度は相関が0.627。
 
+
+```{r v9-corrplot-rename}
+
+m2 <- df |> 
+  rename(
+    景色 = v9_scenery_satisfaction,
+    アクセス = v9_access_satisfaction,
+    施設 = v9_facility_satisfaction,
+    スポット = v9_tourist_spot_satisfaction,
+    総合 = v9_general_satisfaction
+  ) |> 
+  select(
+    景色, アクセス, 施設, スポット, 総合
+  ) |> 
+  cor(use = "pairwise.complete.obs", method = "kendall")
+
+m2 |> round(2)
+
+```
+
 ## 箱ひげ図
 
 ```{r}
