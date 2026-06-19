@@ -71,6 +71,31 @@ result <- chisq.test(tab)
 result$p.value
 ```
 
+市民選好と消費者選好の属性に差が無いことを確認。
+```{r}
+df2 <- df |> 
+  filter(full_wtp_right ==1)
+
+df2 |> 
+  filter(!is.na(v1_sex) & v13_citizen_consumer == "市民選好") |> 
+  count(v1_sex) |> 
+  mutate(
+    percent = round((n / sum(n)) * 100, 1) 
+  )
+
+df2 |> 
+  filter(!is.na(v1_sex)  & v13_citizen_consumer == "消費者選好") |> 
+  count(v1_sex) |> 
+  mutate(
+    percent = round((n / sum(n)) * 100, 1)
+  )
+
+
+tab <- table(df2$v1_sex, df2$v13_citizen_consumer)
+result <- chisq.test(tab)
+result$p.value
+```
+
 
 ## v2(世代)
 
@@ -130,6 +155,32 @@ result$p.value
 
 ```
 
+市民選好と消費者選好の属性に差が無いことを確認。
+```{r}
+df2 <- df |> 
+  filter(full_wtp_right ==1)
+
+df2 |> 
+  filter(!is.na(v2_gen) & v13_citizen_consumer == "市民選好") |> 
+  count(v2_gen) |> 
+  mutate(
+    percent = round((n / sum(n)) * 100, 1) 
+  )
+
+df2 |> 
+  filter(!is.na(v2_gen)  & v13_citizen_consumer == "消費者選好") |> 
+  count(v2_gen) |> 
+  mutate(
+    percent = round((n / sum(n)) * 100, 1)
+  )
+
+
+tab <- table(df2$v2_gen, df2$v13_citizen_consumer)
+result <- chisq.test(tab)
+result$p.value
+```
+
+
 ## v3(居住地)
 
 ```{r}
@@ -188,6 +239,31 @@ result$p.value
 ```
 
 
+市民選好と消費者選好の属性に差が無いことを確認。
+```{r}
+df2 <- df |> 
+  filter(full_wtp_right ==1)
+
+df2 |> 
+  filter(!is.na(v3_hokkaido) & v13_citizen_consumer == "市民選好") |> 
+  count(v3_hokkaido) |> 
+  mutate(
+    percent = round((n / sum(n)) * 100, 1) 
+  )
+
+df2 |> 
+  filter(!is.na(v3_hokkaido)  & v13_citizen_consumer == "消費者選好") |> 
+  count(v3_hokkaido) |> 
+  mutate(
+    percent = round((n / sum(n)) * 100, 1)
+  )
+
+
+tab <- table(df2$v3_hokkaido, df2$v13_citizen_consumer)
+result <- chisq.test(tab)
+result$p.value
+```
+
 ## v4(北海道訪問回数)
 
 ```{r}
@@ -237,6 +313,33 @@ df |>
   geom_step()
 ```
 - 4回目以上でジャンプする。
+
+
+市民選好と消費者選好の属性に差が無いことを確認。
+```{r}
+df2 <- df |> 
+  filter(full_wtp_right ==1)
+
+df2 |> 
+  filter(!is.na(v4_hokkaido_visits) & v13_citizen_consumer == "市民選好") |> 
+  count(v4_hokkaido_visits) |> 
+  mutate(
+    percent = round((n / sum(n)) * 100, 1) 
+  )
+
+df2 |> 
+  filter(!is.na(v4_hokkaido_visits)  & v13_citizen_consumer == "消費者選好") |> 
+  count(v4_hokkaido_visits) |> 
+  mutate(
+    percent = round((n / sum(n)) * 100, 1)
+  )
+
+
+tab <- table(df2$v4_hokkaido_visits, df2$v13_citizen_consumer)
+result <- chisq.test(tab)
+result$p.value
+```
+
 
 ## v5(同行者の人数)
 
@@ -303,6 +406,33 @@ df |>
 - [29]道外は6月に2人連れが多く、7月に2人連れが少なめ（人数が分散している）
 - [30]道内は7月4人連れでCDFがジャンプ
 
+
+市民選好と消費者選好の属性に差が無いことを確認。
+```{r}
+df2 <- df |> 
+  filter(full_wtp_right ==1)
+
+df2 |> 
+  filter(!is.na(v5_companions_cnt) & v13_citizen_consumer == "市民選好") |> 
+  count(v5_companions_cnt) |> 
+  mutate(
+    percent = round((n / sum(n)) * 100, 1) 
+  )
+
+df2 |> 
+  filter(!is.na(v5_companions_cnt)  & v13_citizen_consumer == "消費者選好") |> 
+  count(v5_companions_cnt) |> 
+  mutate(
+    percent = round((n / sum(n)) * 100, 1)
+  )
+
+
+tab <- table(df2$v5_companions_cnt, df2$v13_citizen_consumer)
+result <- chisq.test(tab)
+result$p.value
+```
+
+
 ## v6(神の子池訪問回数)
 
 ```{r}
@@ -346,6 +476,32 @@ df |>
 ```
 
 道外居住者について、神の子池を訪れるのは大半が北海道を4回以上訪れたことのある人（北海道観光を十分経験した人が訪れる傾向がある）。ただ、リピーターは非常に少ない。
+
+市民選好と消費者選好の属性に差が無いことを確認。
+```{r}
+df2 <- df |> 
+  filter(full_wtp_right ==1)
+
+df2 |> 
+  filter(!is.na(v6_kaminoko_visits) & v13_citizen_consumer == "市民選好") |> 
+  count(v6_kaminoko_visits) |> 
+  mutate(
+    percent = round((n / sum(n)) * 100, 1) 
+  )
+
+df2 |> 
+  filter(!is.na(v6_kaminoko_visits)  & v13_citizen_consumer == "消費者選好") |> 
+  count(v6_kaminoko_visits) |> 
+  mutate(
+    percent = round((n / sum(n)) * 100, 1)
+  )
+
+
+tab <- table(df2$v6_kaminoko_visits, df2$v13_citizen_consumer)
+result <- chisq.test(tab)
+result$p.value
+```
+
 
 ## v7 (訪問のきっかけ)
 
@@ -742,6 +898,16 @@ df |>
 \[17\] 直売所があれば商品を見てみたい、という人が多い。 \[18\] 道内の方が「イベントがあれば参加したい」という人が多いが「交流したくない」という人も多い。
 
 ## v13-14（支払意思）
+
+### フレーミング
+
+```{r}
+df2 <- df |> 
+  filter(full_wtp_right ==1)
+
+df2$v13_citizen_consumer |> table()
+```
+
 
 ### 初回WTP
 
